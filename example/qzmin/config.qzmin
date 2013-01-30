@@ -1,0 +1,44 @@
+/*
+	This qzmin file is used in two situation as follow:
+		1.	fiddler&willow replace rules
+		2.	publish system for compressing and merging file
+*/
+
+{
+	"projects": [
+			{
+				"name" :  "merge",
+				"target" : "merge.min.js",
+				"include" : [
+					"a.js",
+					"b.js",
+					"c.js"
+				]
+			},
+			{
+				"name" :  "merge2",
+				"target" : "merge2.min.js",
+				"include" : [
+					"d.js",
+					"e.js",
+					"f.js"
+				]
+			}
+	],
+		
+	// compress level
+	// 0: no min, merge file only
+	// 1: minimal, keep linefeeds if single
+	// 2: normal, the standard algorithm
+	// 3: agressive, remove any linefeed and doesn't take care of potential
+	"level": 0,
+	
+	// shrink file
+	"shrink": 0,
+	
+	//read & write file encoding.
+	"encode" : "utf-8",
+	
+	// merge file comments.
+	"comment": "www.example.com"
+}
