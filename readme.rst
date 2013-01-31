@@ -1,10 +1,13 @@
+What's this
+===========
+Font-end development always need techniques for replacing some request from the server, via altenative host or via local file replacement. This project aimed to facilitate all sorts of request replacement/redirection for front-end development, works the same way fiddler does.
+
+
 TODO
 ====
 typescript support 
 
-refactor of router is needed
-
-Request viewer filter
+Request viewer need a filter system.
 
 Request builder
 
