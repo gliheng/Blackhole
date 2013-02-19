@@ -1,3 +1,4 @@
+#! python3
 # -*- coding: utf-8 -*-
 # ┌─────────────────────────────────────────────────────┐
 # │ Blackhole 0.1 - A fiddler replacement in python     │

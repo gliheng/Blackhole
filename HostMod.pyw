@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#! python3
+# -*- coding: utf-8 -*-
 #======================================
 #   Author: gliheng
 #   Version: 1.0

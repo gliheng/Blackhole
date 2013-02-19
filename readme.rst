@@ -2,6 +2,10 @@ What's this
 ===========
 Font-end development always need techniques for replacing some request from the server, via altenative host or via local file replacement. This project aimed to facilitate all sorts of request replacement/redirection for front-end development, works the same way fiddler does.
 
+Requirements
+============
+- This project is built with python3.3. Other versions are not guaranteed to work.
+- No installation of 3rd part library is needed.
 
 TODO
 ====
