@@ -1,5 +1,6 @@
 import logging
 import winreg
+import subprocess
 
 from blackhole.confparser import getConfig
 
@@ -41,6 +42,10 @@ class RegHandler():
         if cls.oldAutoConfig:
             winreg.DeleteValue(cls.key, 'AutoConfigURL')
 
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
+
     @classmethod
     def deactivate(cls):
         if not cls.active: return
@@ -56,3 +61,7 @@ class RegHandler():
         if cls.oldAutoConfig:
             winreg.SetValueEx(cls.key, 'AutoConfigURL', 0,
                     winreg.REG_SZ, cls.oldAutoConfig)
+
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)

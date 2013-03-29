@@ -224,10 +224,18 @@ def run(config):
 
     logger.info("Server running on port %s." % config.port)
 
+    if config.allow_remote_conn:
+        # import socket
+        # socket.gethostname(),
+        host = ('0.0.0.0', config.port)
+    else:
+        host = ('0.0.0.0', config.port)
+
     global server
     server = wsgiserver.CherryPyWSGIServer(
-                ('0.0.0.0', config.port), app.handler,
-                server_name='Blackhole', numthreads = 50)
+        host,
+        app.handler,
+        numthreads = 50)
 
 
     server_thread = threading.Thread(target=server.start)
@@ -238,7 +246,6 @@ def stop():
     logger.info('Server closed.')
 
     server.stop()
-    sys.exit()
 
 def reload(config):
     app.load_config(config)

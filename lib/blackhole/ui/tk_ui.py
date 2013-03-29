@@ -1,36 +1,8 @@
-#! python3
-# -*- coding: utf-8 -*-
-# ┌─────────────────────────────────────────────────────┐
-# │ Blackhole 0.1 - A fiddler replacement in python     │
-# ├─────────────────────────────────────────────────────┤
-# │ Copyright (c) 2012 Amadeusguo                       │
-# │ http://amadeus.herokuapp.com/                       │
-# │ Licensed under the MIT license.                     │
-# └─────────────────────────────────────────────────────┘
-
-import os
-import sys
-
-cwd = os.path.dirname(__file__)
-os.chdir(cwd)
-
-if len(sys.argv) > 1:
-    CONFIG_FILE = sys.argv[1]
-else:
-    CONFIG_FILE = 'config.ini'
-    sys.argv.append(CONFIG_FILE)
-
-sys.path.insert(0, 'lib')
-
-__version__ = '0.2'
-
 import re
-import time
 import subprocess
 import threading 
 
 import logging
-from logging import StreamHandler
 from logging.handlers import RotatingFileHandler
 #rotateLogger = RotatingFileHandler('data/log/log.txt', maxBytes=100*1024*1024, backupCount=3)
 #logging.basicConfig(level = logging.DEBUG, handlers=(rotateLogger,))
@@ -41,8 +13,8 @@ from tkinter import *
 from tkinter.ttk import *
 
 from blackhole.reghandler import RegHandler
-from blackhole.confparser import getConfig
 import blackhole.router as server
+from blackhole.confparser import getConfig
 
 
 class MainFrame(Frame):
@@ -119,8 +91,6 @@ class MainFrame(Frame):
             self.capture_btn.config(text='Capture', image=IMAGES['link'])
             self.status_bar.config(text='Server has stopped')
 
-        subprocess.Popen('data/bin/NotifyProxyChange.exe')
-            
     def clearCache(self):
         ''' clearCache
         '''
@@ -237,7 +207,7 @@ class ConfigWin(ToolWindow):
         self.edit.tag_add(SEL, '1.0', END)
 
     def readConfig(self):
-        with open(CONFIG_FILE) as f:
+        with open(config.config_file) as f:
             data = f.read()
 
         self.edit.insert(END, data)
@@ -245,17 +215,16 @@ class ConfigWin(ToolWindow):
     def writeConfig(self):
         # Text widget has an extra \n
         # The tkinter text widget guarantees that there is always a newline following the last character in the widget.
+
         data = self.edit.get('1.0', 'end-1c')
 
-        with open(CONFIG_FILE, 'w') as f:
+        with open(config.config_file, 'w') as f:
             f.write(data)
 
         self.tip.config(text='Settings was Saved!')
         self.after(2000, lambda: self.tip.config(text=''))
 
-        global config
-        config = getConfig(CONFIG_FILE)
-        server.reload(config)
+        server.reload(getConfig(config.config_file))
 
 
 class LogGrid(Frame):
@@ -445,24 +414,22 @@ class LogWin(ToolWindow):
         self.master.after_cancel(self.timer)
         super().destroy()
 
+def init(_config):
 
-if __name__=='__main__':
+    global config
+    config = _config
 
-    config = getConfig(CONFIG_FILE)
+    global INITMSG
+    global RUNMSG
+    global STOPMSG
+    global root
+    global IMAGES
 
     INITMSG = "Startings..."
     RUNMSG = 'Capturing traffic via localhost:%d' % config.port
     STOPMSG = 'Capturing has stopped'
 
-    server.run(config)
-
     root = Tk()
-
-    # setup styles and resources
-    style = Style()
-    style.configure('Tip.TLabel', foreground='red')
-    style.configure('Status.TLabel', padding=2, relief=SUNKEN, font='Calibri 12 bold')
-    root.option_add('*tearOff', FALSE)
 
     IMAGES = {
         'link': PhotoImage(file='data/img/link.gif'),
@@ -474,15 +441,11 @@ if __name__=='__main__':
         'quit': PhotoImage(file='data/img/quit.gif')
     }
 
-    def app_quit():
-        ''' Quit handler
-        '''
-        RegHandler.deactivate()
-        subprocess.Popen('data/bin/NotifyProxyChange.exe')
-        # sys.exit()
-        # is it ok to exit this way?
-        # server.stop()
-        root.quit()
+    # setup styles and resources
+    style = Style()
+    style.configure('Tip.TLabel', foreground='red')
+    style.configure('Status.TLabel', padding=2, relief=SUNKEN, font='Calibri 12 bold')
+    root.option_add('*tearOff', FALSE)
 
     # main window
     main_frame = MainFrame(root)
@@ -490,5 +453,15 @@ if __name__=='__main__':
     root.iconbitmap(default='data/img/app.ico')
     root.protocol('WM_DELETE_WINDOW', app_quit)
 #    root.resizable(False,False)
-    root.title('Blackhole %s' % __version__)
+    root.title('Blackhole %s' % config.version)
     root.mainloop()
+
+def app_quit():
+    ''' Quit handler
+    '''
+    RegHandler.deactivate()
+
+    # server.stop()
+    root.quit()
+
+    sys.exit(0)

@@ -15,6 +15,7 @@ class Configuration():
             self.localOnly = eval(config.defaults().get('localhost_only', 'True'))
             self.sep = eval('"' + config.defaults().get('seperator', '\\t') + '"')
             self.port = eval(config.defaults().get('port', '8000'))
+            self.allow_remote_conn = eval(config.defaults().get('allow_remote_conn', 'False'))
 
         except:
             logger.critical("Can't parse the config file: %s." % config_file)
