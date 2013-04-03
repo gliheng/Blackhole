@@ -98,14 +98,20 @@ class MainFrame(Frame):
         # subprocess.Popen('rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 8')
         cmd = 'data/bin/CleanIETempFiles.exe -t -q'
         logger.info('Starting proc: %s' % cmd)
-        subprocess.Popen(cmd)
+
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.Popen(cmd, startupinfo=startupinfo)
 
     def clearCookie(self):
         ''' clearCookie
         '''
         cmd = 'rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 2'
         logger.info('Starting proc: %s' % cmd)
-        subprocess.Popen(cmd)
+
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.Popen(cmd, startupinfo=startupinfo)
 
 
 class ToolWindow(Toplevel):
