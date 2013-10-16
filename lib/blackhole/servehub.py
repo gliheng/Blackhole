@@ -88,10 +88,14 @@ class ProxyServe():
         try:
             f_res = urllib.request.urlopen(f_req)
         except URLError as e:
-            reason = str(e.reason)
-            logger.error('Error openning url (%s): %s' % (reason, url))
-            return ('200 OK', [], reason)
+            data = str(e.reason).encode('utf-8')
 
+            logger.error('Error openning url (%s): %s' % (data, url))
+
+            headers = []
+            headers.append(['Content-Type', 'text/plain'])
+            headers.append(['Content-Length', str(len(data))])
+            return ('200 OK', headers, [data])
 
         # forward headers
         headers = []
