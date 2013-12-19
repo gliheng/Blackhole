@@ -229,7 +229,7 @@ def run(config):
         # socket.gethostname(),
         host = ('0.0.0.0', config.port)
     else:
-        host = ('0.0.0.0', config.port)
+        host = ('127.0.0.1', config.port)
 
     global server
     server = wsgiserver.CherryPyWSGIServer(
