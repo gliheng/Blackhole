@@ -53,11 +53,12 @@ class Router():
         '''
         Support these mappings:
 
-        url_reg  ---> local file
-        url_reg  ---> local dir
-        url_reg  ---> host ip
-        url_reg  ---> special
-        url_reg  ---> qzmin
+        local file
+        local dir
+        host ip: get the response from an ip
+        special: special serve create the response on the fly
+        qzmin: qzmin js concat rule
+        DEFAULT: get response as is
         '''
         if self.__class__.ip_re.match(spec):
             spec_type = 'ip'
@@ -67,6 +68,8 @@ class Router():
             spec_type = 'dir'
         elif spec.endswith('.qzmin'):
             spec_type = 'qzmin'
+        elif spec == 'DEFAULT':
+            spec_type = 'default'
         else:
             spec_type = 'file'
 
@@ -134,12 +137,19 @@ class Router():
                 file_path = os.path.join(os.path.dirname(route['spec']), file_name)
 
                 res = QZServe.serve(file_path, route['spec'], environ = environ)
+
             elif spec_type == 'special':
                 logger.info('special match detected: %s' % route['spec'])
 
                 self.onRequest({'idx': idx, 'type': 'special', 'url': url, 'action': route['spec']})
 
                 res = SpecialServe.serve(url, route['spec'], environ = environ)
+
+            elif spec_type == 'default':
+                logger.info('default match detected: %s' % route['spec'])
+                self.onRequest({'idx': idx, 'type': 'default', 'url': url, 'action': route['spec']})
+
+                res = ProxyServe.serve(url, environ = environ)
 
             # call addon methods after response
             if res:
@@ -151,7 +161,7 @@ class Router():
         # no match was found
         if not res:
             logger.info('no match detected')
-            self.onRequest({'idx':idx, 'type':'noop', 'url': url, 'action': ''})
+            self.onRequest({'idx':idx, 'type':'default', 'url': url, 'action': ''})
 
             res = ProxyServe.serve(url, environ = environ)
 
@@ -162,59 +172,51 @@ class Router():
     def preOperations(self, addons, request):
         ''' Pre processing before response is received
         '''
-        response = None
-
-        addon_list = addons.split('|')
-        for addon in addon_list:
-            if addon in self.addons:
-                logger.info('Processing addon: %s' % addon)
-                # if addon return empty value, it is ignored
-                klass = self.addons[addon]
-
-                result = klass(response).pre_edit()
-
-                if result: response = result
-
-        # fix content-length
-        if response:
-            length = 0
-            for item in response[2]:
-                length += len(item)
-
-            headers = response[1]
-            for header in headers:
-                if header[0] == 'Content-Length':
-                    header[1] = str(length)
-                    break
-
-        return response
-
+        pass
+      
     def postOperations(self, addons, request, response):
         ''' Post processing when response is received
         '''
+        body = response[2]
+
         addon_list = addons.split('|')
-        for addon in addon_list:
+        for addon_line in addon_list:
+            if ':' in addon_line:
+                addon, arg = addon_line.split(':', maxsplit=1)
+            else:
+                addon = addon_line
+                arg = None
             if addon in self.addons:
                 logger.info('Processing addon: %s' % addon)
                 # if addon return empty value, it is ignored
                 klass = self.addons[addon]
 
-                result = klass(response).post_edit()
+                ret = klass(response).post_edit(arg)
+                if ret: response = ret
 
-                if result: response = result
+        # body changed
+        if body != response[2]:
+            remove_content_encoding = True
+        else:
+            remove_content_encoding = False
 
+        # fix headers
         # fix content-length
         length = 0
         for item in response[2]:
             length += len(item)
 
         headers = response[1]
+        new_headers = []
         for header in headers:
-            if header[0] == 'Content-Length':
-                header[1] = str(length)
-                break
 
-        return response
+            key = header[0]
+            if key == 'Content-Length':
+                header[1] = str(length)
+            if not (key == 'Content-Encoding' and remove_content_encoding):
+                new_headers.append(header)
+
+        return [response[0], new_headers, response[2]]
 
 app = Router()
 server = None

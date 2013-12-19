@@ -240,7 +240,7 @@ class LogGrid(Frame):
         'dir': 'Pink',
         'qzmin': 'PeachPuff',
         'ip': 'Salmon',
-        'noop': 'White'
+        'default': 'White'
         }
 
     def __init__(self, parent):

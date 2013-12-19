@@ -4,6 +4,7 @@ import re
 import gzip
 import types
 import tempfile
+import subprocess
 from io import BytesIO
 
 TEMP_DIR = os.path.join(tempfile.gettempdir(), 'blackhole')
@@ -24,10 +25,10 @@ class edit():
             for chunk in self.response[2]:
                 self.body += chunk
 
-    def pre_edit(self):
+    def pre_edit(self, args):
         ''' This method is called before request '''
 
-    def post_edit(self):
+    def post_edit(self, args):
         ''' This method is called after request '''
 
         for header in self.headers:
@@ -58,15 +59,35 @@ class edit():
 
         return (self.status, self.headers, [new_data])
 
-class test():
+class transform():
     def __init__(self, response):
-        pass
+        self.response = response
 
-    def pre_edit(self):
+    def pre_edit(self, args):
         ''' This method is called before request '''
+        return self.response
 
-    def post_edit(self):
+    def post_edit(self, args):
         ''' This method is called after request '''
+        ret = subprocess.check_output(['python', args], shell=True)
+        self.response[2] = [ret]
+        return self.response
+
+class test():
+    '''
+    This is an addon scaffold
+    '''
+    def __init__(self, response):
+        self.response = response
+
+    def pre_edit(self, args):
+        ''' This method is called before request '''
+        return self.response
+
+    def post_edit(self, args):
+        ''' This method is called after request '''
+        return self.response
+
 
 
 if __name__ == '__main__':
