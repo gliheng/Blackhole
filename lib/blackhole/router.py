@@ -5,6 +5,8 @@ import types
 from urllib.request import url2pathname
 from urllib.parse import urlparse, unquote, quote_from_bytes
 import threading
+import gzip
+from io import BytesIO
 
 import logging
 logger = logging.getLogger(__name__)
@@ -177,7 +179,14 @@ class Router():
     def postOperations(self, addons, request, response):
         ''' Post processing when response is received
         '''
-        body = response[2]
+        headers = response[1]
+        # iterable was changed to bytes here
+        body = response[2] = b''.join(response[2])
+
+        # decompress
+        hasgzip = any(header[0] == 'Content-Encoding' and 'gzip' in header[1] for header in headers)
+        if hasgzip:
+            response[2] = body = gzip.GzipFile(fileobj=BytesIO(body)).read()
 
         addon_list = addons.split('|')
         for addon_line in addon_list:
@@ -194,11 +203,8 @@ class Router():
                 ret = klass(response).post_edit(arg)
                 if ret: response = ret
 
-        # body changed
-        if body != response[2]:
-            remove_content_encoding = True
-        else:
-            remove_content_encoding = False
+        # make it iterable again
+        response[2] = [response[2]]
 
         # fix headers
         # fix content-length
@@ -206,14 +212,12 @@ class Router():
         for item in response[2]:
             length += len(item)
 
-        headers = response[1]
         new_headers = []
         for header in headers:
-
             key = header[0]
             if key == 'Content-Length':
                 header[1] = str(length)
-            if not (key == 'Content-Encoding' and remove_content_encoding):
+            if not key == 'Content-Encoding':
                 new_headers.append(header)
 
         return [response[0], new_headers, response[2]]

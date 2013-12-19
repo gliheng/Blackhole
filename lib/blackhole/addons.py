@@ -1,7 +1,5 @@
-
 import os
 import re
-import gzip
 import types
 import tempfile
 import subprocess
@@ -16,27 +14,13 @@ class edit():
         self.response = response
         self.status = response[0]
         self.headers = response[1]
-
-        # convert wsgi iterable response to str
-        if type(self.response[2]) == bytes:
-            self.body = response[2]
-        else:
-            self.body = b''
-            for chunk in self.response[2]:
-                self.body += chunk
+        self.body = response[2]
 
     def pre_edit(self, args):
         ''' This method is called before request '''
 
     def post_edit(self, args):
         ''' This method is called after request '''
-
-        for header in self.headers:
-            if header[0] == 'Content-Encoding' and header[1] == 'gzip':
-                # decompress data with gzip
-                self.headers.remove(header)
-                self.body = gzip.GzipFile(fileobj=BytesIO(self.body)).read()
-                break
 
         try:
             fd, fn = tempfile.mkstemp(prefix='tmp_', suffix='.txt', text=True, dir=TEMP_DIR)
@@ -62,6 +46,7 @@ class edit():
 class transform():
     def __init__(self, response):
         self.response = response
+        self.body = response[2]
 
     def pre_edit(self, args):
         ''' This method is called before request '''
@@ -69,8 +54,9 @@ class transform():
 
     def post_edit(self, args):
         ''' This method is called after request '''
-        ret = subprocess.check_output(['python', args], shell=True)
-        self.response[2] = [ret]
+        p = subprocess.Popen(['python', args], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+        ret, _ = p.communicate(self.body)
+        self.response[2] = ret
         return self.response
 
 class test():
