@@ -104,16 +104,14 @@ class Router():
             # if not res:
 
             spec_type = route['type']
-            if spec_type == 'file':
-                logger.info('file match detected: %s' % route['spec'])
-                self.onRequest({'idx': idx, 'type': 'file', 'url': url, 'action': route['spec']})
 
+            logger.info('{} match detected: {}'.format(spec_type, route['spec']))
+            self.onRequest({'idx': idx, 'type': spec_type, 'url': url, 'action': route['spec']})
+
+            if spec_type == 'file':
                 res = FileServe.serve(route['spec'], environ = environ)
 
             elif spec_type == 'dir':
-                logger.info('dir match detected: %s' % route['spec'])
-                self.onRequest({'idx': idx, 'type': 'dir', 'url': url, 'action': route['spec']})
-
                 path = urlparse(url).path[1:]
 
                 # remainder is the part that is not matched
@@ -126,48 +124,40 @@ class Router():
                 res = FileServe.serve(file_path, environ = environ)
 
             elif spec_type == 'ip':
-                logger.info('ip match detected: %s' % route['spec'])
-                self.onRequest({'idx': idx, 'type': 'ip', 'url': url, 'action': route['spec']})
-
                 res = ProxyServe.serve(url, ip = route['spec'], environ = environ)
 
             elif spec_type == 'qzmin':
-                logger.info('qzmin match detected: %s' % route['spec'])
-                self.onRequest({'idx': idx, 'type': 'qzmin', 'url': url, 'action': route['spec']})
-
                 file_name = os.path.basename(urlparse(url).path)
                 file_path = os.path.join(os.path.dirname(route['spec']), file_name)
 
                 res = QZServe.serve(file_path, route['spec'], environ = environ)
 
             elif spec_type == 'special':
-                logger.info('special match detected: %s' % route['spec'])
-
-                self.onRequest({'idx': idx, 'type': 'special', 'url': url, 'action': route['spec']})
-
                 res = SpecialServe.serve(url, route['spec'], environ = environ)
 
             elif spec_type == 'default':
-                logger.info('default match detected: %s' % route['spec'])
-                self.onRequest({'idx': idx, 'type': 'default', 'url': url, 'action': route['spec']})
-
                 res = ProxyServe.serve(url, environ = environ)
 
+            # make a 404 response if no res is returned
+            if not res:
+                res = ['404 NOT FOUND', [], ['']]
+
             # call addon methods after response
-            if res:
-                if 'addons' in route:
-                    res = self.postOperations(route['addons'], request = environ, response = res)
+            if 'addons' in route:
+                res = self.postOperations(route['addons'], request = environ, response = res)
 
-                break
+            break
 
-        # no match was found
+
+        # no match was found, serve the request as is
         if not res:
             logger.info('no match detected')
             self.onRequest({'idx':idx, 'type':'default', 'url': url, 'action': ''})
 
             res = ProxyServe.serve(url, environ = environ)
 
-        self.onResponse({'idx':idx, 'status':res[0]})
+        self.onResponse({'idx': idx, 'status': res[0]})
+
         start_response(res[0], res[1])
         return res[2]
 
