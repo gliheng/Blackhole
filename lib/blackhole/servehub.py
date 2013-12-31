@@ -126,7 +126,12 @@ class FileServe():
             status = '404 NOT FOUND'
             data = ''
 
-        mimetype = mimetypes.guess_type(path)[0] or 'text/plain'
+        # TODO: make this configurable?
+        if os.path.splitext(path)[1] in ['.wsp', '.tmpl']:
+            # if template files are applicable
+            mimetype = 'text/html'
+        else:
+            mimetype = mimetypes.guess_type(path)[0] or 'text/plain'
         #encoding = 'gb2312' #TODO dont hard code this
         #headers.append(['Content-Type', mimetype+';charset='+encoding])
         headers.append(['Content-Type', mimetype])
