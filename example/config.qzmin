@@ -7,21 +7,21 @@
 {
 	"projects": [
 			{
-				"name" :  "merge",
-				"target" : "merge.min.js",
+				"name" :  "concat",
+				"target" : "concat.min.js",
 				"include" : [
-					"a.js",
-					"b.js",
-					"c.js"
+					"concat/a.js",
+					"concat/b.js",
+					"concat/c.js"
 				]
 			},
 			{
-				"name" :  "merge2",
-				"target" : "merge2.min.js",
+				"name" :  "concat2",
+				"target" : "concat2.min.js",
 				"include" : [
-					"d.js",
-					"e.js",
-					"f.js"
+					"concat/d.js",
+					"concat/e.js",
+					"concat/f.js"
 				]
 			}
 	],

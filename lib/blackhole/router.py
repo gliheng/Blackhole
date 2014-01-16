@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 import wsgiserver
 from blackhole.utils import Event
-from blackhole.servehub import FileServe, ProxyServe, QZServe, SpecialServe
+from blackhole.servehub import FileServe, ProxyServe, ConcatServe, QZServe, SpecialServe
 import blackhole.addons as addons
 
 class Router():
@@ -66,10 +66,10 @@ class Router():
             spec_type = 'ip'
         elif spec.startswith('*') :
             spec_type = 'special'
-        elif spec.endswith('/') or spec.endswith('\\') :
+        elif spec.endswith(('/', '\\')):
             spec_type = 'dir'
-        elif spec.endswith('.qzmin'):
-            spec_type = 'qzmin'
+        elif spec.endswith(('.cfg', '.qzmin')):
+            spec_type = 'concat'
         elif spec == 'DEFAULT':
             spec_type = 'default'
         else:
@@ -104,12 +104,13 @@ class Router():
             # if not res:
 
             spec_type = route['type']
+            spec = route['spec']
 
-            logger.info('{} match detected: {}'.format(spec_type, route['spec']))
-            self.onRequest({'idx': idx, 'type': spec_type, 'url': url, 'action': route['spec']})
+            logger.info('{} match detected: {}'.format(spec_type, spec))
+            self.onRequest({'idx': idx, 'type': spec_type, 'url': url, 'action': spec})
 
             if spec_type == 'file':
-                res = FileServe.serve(route['spec'], environ = environ)
+                res = FileServe.serve(spec, environ = environ)
 
             elif spec_type == 'dir':
                 path = urlparse(url).path[1:]
@@ -120,20 +121,23 @@ class Router():
                 if remainder.startswith('/') or remainder.startswith('\\') :
                     remainder = remainder[1:]
 
-                file_path = os.path.join(route['spec'], remainder)
+                file_path = os.path.join(spec, remainder)
                 res = FileServe.serve(file_path, environ = environ)
 
             elif spec_type == 'ip':
-                res = ProxyServe.serve(url, ip = route['spec'], environ = environ)
+                res = ProxyServe.serve(url, ip = spec, environ = environ)
 
-            elif spec_type == 'qzmin':
+            elif spec_type == 'concat':
                 file_name = os.path.basename(urlparse(url).path)
-                file_path = os.path.join(os.path.dirname(route['spec']), file_name)
+                file_path = os.path.join(os.path.dirname(spec), file_name)
 
-                res = QZServe.serve(file_path, route['spec'], environ = environ)
+                if spec.endswith('.cfg'):
+                    res = ConcatServe.serve(file_path, spec, environ = environ)
+                elif spec.endswith('.qzmin'):
+                    res = QZServe.serve(file_path, spec, environ = environ)
 
             elif spec_type == 'special':
-                res = SpecialServe.serve(url, route['spec'], environ = environ)
+                res = SpecialServe.serve(url, spec, environ = environ)
 
             elif spec_type == 'default':
                 res = ProxyServe.serve(url, environ = environ)

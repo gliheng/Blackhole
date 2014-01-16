@@ -140,14 +140,125 @@ class FileServe():
         return [status, headers, [data]]
 
 class SpecialServe():
-    '''Serve a static file from local disk
+    '''Ad-hoc response server
     '''
-
     @classmethod
     def serve(cls, url, rule, environ = {}):
         if rule.startswith('*redir:'):
             loc = rule.lstrip('*redir:')
             return ['302 Found', [('Location', loc)], []]
+
+import configparser
+class ConcatServe:
+
+    '''Serve a local file based on qzmin config.
+    If qzmin file is changed, filelist is reloaded.
+    If part file is changed, min-file is regenerated.
+    '''
+    min_list = {} # which min_files does each config_file contain
+    part_list = {} # which parts does each min_file contain
+
+    mtime_list = {} # last modify time for each file
+
+    @classmethod
+    def update(cls, fn, mtime=None):
+        ''' Update a file's modification time
+        '''
+        if mtime == None:
+            mtime = os.path.getmtime(fn)
+
+        cls.mtime_list[fn] = mtime
+
+    @classmethod
+    def changed(cls, fn):
+        ''' Verify if a file is modifed since last update
+            by checking modification time
+        '''
+        mtime = os.path.getmtime(fn)
+        if cls.mtime_list.get(fn, '') != mtime:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def serve(cls, file_path, config_file, environ={}):
+
+        home_dir = os.path.dirname(config_file)
+        min_fn = os.path.basename(file_path)
+        min_path = os.path.join(home_dir, min_fn)
+
+        # If qzmin file is changed, filelist is reloaded.
+        if cls.changed(config_file):
+            cls.load_config(config_file) # update min_list and part_list
+
+            # reset mtime for parts will make them regen min file
+            for part in cls.part_list[min_path]:
+                cls.update(part, 0)
+
+            cls.update(config_file)
+
+        if not min_path in cls.part_list:
+            # if the min file does not contain the requested file,
+            # the 1st file listed in qzmin file is used
+            file_path = cls.min_list[config_file][0]
+            min_fn = os.path.basename(file_path)
+            min_path = os.path.join(home_dir, min_fn)
+
+        if not os.path.exists(min_path):
+            cls.gen_minfile(min_path)
+        else:
+            for part in cls.part_list[min_path]:
+                # If part file is changed, min-file is regenerated.
+                if cls.changed(part):
+                    cls.gen_minfile(min_path)
+                    break
+
+        # static serve generated file
+        rtn = FileServe.serve(min_path, environ)
+        return rtn
+
+    @classmethod
+    def load_config(cls, config_file):
+        ''' load ini file config
+        '''
+
+        home_dir = os.path.dirname(config_file)
+
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        concat = config['concat']
+
+        min_list = cls.min_list[config_file] = []
+
+        for minfile in concat.keys():
+
+            min_path = os.path.join(home_dir, minfile)
+
+            min_list.append(min_path)
+
+            part_list = cls.part_list[min_path] = []
+
+            parts = filter(lambda a: a, concat.get(minfile).strip().splitlines())
+            for part_name in parts:
+                part_list.append(os.path.join(home_dir, part_name))
+
+    @classmethod
+    def gen_minfile(cls, min_file):
+        ''' generate min files
+        '''
+
+        logger.info('Generating min file...')
+
+        min_fp = open(min_file, 'wb')
+
+        for part in cls.part_list[min_file]:
+            min_fp.write(open(part, mode='rb').read())
+            min_fp.write(b'\n')
+            cls.update(part)
+
+        min_fp.close()
+
 
 import json
 import re
@@ -181,88 +292,27 @@ def parse_json(filename):
         # Return json file
         return json.loads(content)
 
-class QZServe():
+class QZServe(ConcatServe):
     '''Serve a local file based on qzmin config.
     If qzmin file is changed, filelist is reloaded.
     If part file is changed, min-file is regenerated.
     '''
-    min_list = {} # which min_files does each qz_file contain
-    part_list = {} # which parts does each min_file contain
-
-    mtime_list = {} # last modify time for each file
-
     @classmethod
-    def update(cls, fn, mtime=None):
-        ''' Update a file's modification time
-        '''
-        if mtime == None:
-            mtime = os.path.getmtime(fn)
-
-        cls.mtime_list[fn] = mtime
-
-    @classmethod
-    def changed(cls, fn):
-        ''' Verify if a file is modifed since last update
-            by checking modification time
-        '''
-        mtime = os.path.getmtime(fn)
-        if cls.mtime_list.get(fn, '') != mtime:
-            return True
-        else:
-            return False
-    @classmethod
-    def serve(cls, file_path, qz_file, environ={}):
-
-        home_dir = os.path.dirname(qz_file)
-        min_fn = os.path.basename(file_path)
-        min_path = os.path.join(home_dir, min_fn)
-
-        # If qzmin file is changed, filelist is reloaded.
-        if cls.changed(qz_file):
-            cls.load_config(qz_file) # update min_list and part_list
-
-            # reset mtime for parts will make them regen min file
-            for part in cls.part_list[min_path]:
-                cls.update(part, 0)
-
-            cls.update(qz_file)
-
-        if not min_path in cls.part_list:
-            # if the min file does not contain the requested file,
-            # the 1st file listed in qzmin file is used
-            file_path = cls.min_list[qz_file][0]
-            min_fn = os.path.basename(file_path)
-            min_path = os.path.join(home_dir, min_fn)
-
-        if not os.path.exists(min_path):
-            cls.gen_minfile(min_path)
-        else:
-            for part in cls.part_list[min_path]:
-                # If part file is changed, min-file is regenerated.
-                if cls.changed(part):
-                    cls.gen_minfile(min_path)
-                    break
-
-        # static serve generated file
-        rtn = FileServe.serve(min_path, environ)
-        return rtn
-
-    @classmethod
-    def load_config(cls, qz_file):
+    def load_config(cls, config_file):
         ''' load qzmin config
         '''
 
-        config = parse_json(qz_file)
+        config = parse_json(config_file)
         min_files = config.get('projects', [])
-        home_dir = os.path.dirname(qz_file)
+        home_dir = os.path.dirname(config_file)
 
-        cls.min_list[qz_file] = []
+        cls.min_list[config_file] = []
 
         for minfile in min_files:
 
             min_path = os.path.join(home_dir, minfile['target'])
 
-            cls.min_list[qz_file].append(min_path)
+            cls.min_list[config_file].append(min_path)
 
             part_list = cls.part_list[min_path] = []
 
@@ -270,26 +320,6 @@ class QZServe():
                 part_list.append(os.path.join(home_dir, part_name))
 
 
-    @classmethod
-    def gen_minfile(cls, min_file):
-        ''' generate min files
-        '''
-
-        logger.info('Generating min file...')
-
-        min_fp = open(min_file, 'wb')
-
-        for part in cls.part_list[min_file]:
-            min_fp.write(open(part, mode='rb').read())
-            min_fp.write(b'\n')
-            cls.update(part)
-
-        min_fp.close()
-
-    @staticmethod
-    def get_minfile(qz_file):
-
-        return open(qz_file).read()
 
 if __name__ == '__main__':
     print(QZServe.serve('http://www.test.com/js/test.min.js', 'example/qzmin/config.qzmin'))

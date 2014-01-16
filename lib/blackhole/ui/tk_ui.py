@@ -238,7 +238,7 @@ class LogGrid(Frame):
     match_config = {
         'file': 'Orange',
         'dir': 'Pink',
-        'qzmin': 'PeachPuff',
+        'concat': 'PeachPuff',
         'ip': 'Salmon',
         'default': 'White'
         }
