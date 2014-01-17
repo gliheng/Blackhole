@@ -10,6 +10,10 @@
 
 import os
 import sys
+import logging
+# rotateLogger = RotatingFileHandler('data/log/log.txt', maxBytes=100*1024*1024, backupCount=3)
+# logging.basicConfig(level = logging.DEBUG, handlers=(rotateLogger,))
+logging.basicConfig(level = logging.DEBUG)
 
 cwd = os.path.dirname(__file__)
 os.chdir(cwd)

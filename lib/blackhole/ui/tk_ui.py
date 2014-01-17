@@ -4,8 +4,6 @@ import threading
 
 import logging
 from logging.handlers import RotatingFileHandler
-#rotateLogger = RotatingFileHandler('data/log/log.txt', maxBytes=100*1024*1024, backupCount=3)
-#logging.basicConfig(level = logging.DEBUG, handlers=(rotateLogger,))
 logger = logging.getLogger(__name__)
 
 from tkinter import *
