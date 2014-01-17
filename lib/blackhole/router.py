@@ -180,7 +180,10 @@ class Router():
         # decompress
         hasgzip = any(header[0] == 'Content-Encoding' and 'gzip' in header[1] for header in headers)
         if hasgzip:
-            response[2] = body = gzip.GzipFile(fileobj=BytesIO(body)).read()
+            body = response[2] = gzip.GzipFile(fileobj=BytesIO(body)).read()
+
+        # TODO: assume page is utf-8 encoding
+        body = response[2] = body.decode('utf-8')
 
         addon_list = addons.split('|')
         for addon_line in addon_list:
@@ -198,7 +201,7 @@ class Router():
                 if ret: response = ret
 
         # make it iterable again
-        response[2] = [response[2]]
+        response[2] = [response[2].encode('utf-8')]
 
         # fix headers
         # fix content-length

@@ -1,8 +1,10 @@
 import os
 import re
+import sys
 import types
 import tempfile
 import subprocess
+import locale
 from io import BytesIO
 
 TEMP_DIR = os.path.join(tempfile.gettempdir(), 'blackhole')
@@ -54,9 +56,17 @@ class transform():
 
     def post_edit(self, args):
         ''' This method is called after request '''
-        p = subprocess.Popen(['python', args], stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
-        ret, _ = p.communicate(self.body)
-        self.response[2] = ret
+        env = os.environ.copy()
+        # make subprocess use utf-8 encoding for stdin
+        env['PYTHONIOENCODING'] = 'utf-8'
+
+        p = subprocess.Popen([sys.executable, args],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                env=env)
+        codec = locale.getpreferredencoding()
+        ret, _ = p.communicate(self.body.encode('utf-8'))
+        self.response[2] = ret.decode('utf-8')
         return self.response
 
 class test():
