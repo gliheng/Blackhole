@@ -164,7 +164,7 @@ class ConcatServe:
     def update(cls, fn, mtime=None):
         ''' Update a file's modification time
         '''
-        if mtime == None:
+        if mtime is None:
             mtime = os.path.getmtime(fn)
 
         cls.mtime_list[fn] = mtime
@@ -184,27 +184,30 @@ class ConcatServe:
     def serve(cls, file_path, config_file, environ={}):
 
         home_dir = os.path.dirname(config_file)
-        min_fn = os.path.basename(file_path)
-        min_path = os.path.join(home_dir, min_fn)
+        min_fname = os.path.basename(file_path)
+        min_path = os.path.join(home_dir, min_fname)
 
-        # If qzmin file is changed, filelist is reloaded.
+        # If config file is changed, filelist is reloaded.
+        config_updated = False
         if cls.changed(config_file):
             cls.load_config(config_file) # update min_list and part_list
-
-            # reset mtime for parts will make them regen min file
-            for part in cls.part_list[min_path]:
-                cls.update(part, 0)
-
             cls.update(config_file)
+            config_updated = True
 
         if not min_path in cls.part_list:
             # if the min file does not contain the requested file,
             # the 1st file listed in qzmin file is used
-            file_path = cls.min_list[config_file][0]
-            min_fn = os.path.basename(file_path)
-            min_path = os.path.join(home_dir, min_fn)
+            for path in cls.part_list:
+                fname = os.path.basename(path)
+                if min_fname == fname:
+                    min_path = path
+                    break
+            else:
+                # can't find the concat file in config
+                return
 
-        if not os.path.exists(min_path):
+        # consider regen concat file
+        if config_updated or not os.path.exists(min_path):
             cls.gen_minfile(min_path)
         else:
             for part in cls.part_list[min_path]:
@@ -222,6 +225,13 @@ class ConcatServe:
         ''' load ini file config
         '''
 
+        # remove old config
+        if config_file in cls.min_list:
+            for concat in cls.min_list[config_file]:
+                del cls.part_list[concat]
+            del cls.min_list[config_file]
+
+        # add new config
         home_dir = os.path.dirname(config_file)
 
         config = configparser.ConfigParser()
@@ -244,20 +254,20 @@ class ConcatServe:
                 part_list.append(os.path.join(home_dir, part_name))
 
     @classmethod
-    def gen_minfile(cls, min_file):
+    def gen_minfile(cls, fpath):
         ''' generate min files
         '''
 
-        logger.info('Generating min file...')
+        logger.info('Generating min file...' + fpath)
 
-        min_fp = open(min_file, 'wb')
+        fil = open(fpath, 'wb')
 
-        for part in cls.part_list[min_file]:
-            min_fp.write(open(part, mode='rb').read())
-            min_fp.write(b'\n')
+        for part in cls.part_list[fpath]:
+            fil.write(open(part, mode='rb').read())
+            fil.write(b'\n')
             cls.update(part)
 
-        min_fp.close()
+        fil.close()
 
 
 import json
