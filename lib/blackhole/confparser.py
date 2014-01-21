@@ -22,9 +22,11 @@ class Configuration():
 
         self.rules = []
         for sec in config.sections():
-
-            line_enabled = config.getboolean(sec, 'enabled')
-            if not line_enabled: continue
+            try:
+                enabled = not config.getboolean(sec, 'disabled')
+            except:
+                enabled = config.getboolean(sec, 'enabled')
+            if not enabled: continue
 
             line_rules = config.get(sec, 'rules')
             for rule in line_rules.split('\n'):
