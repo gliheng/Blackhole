@@ -1,7 +1,6 @@
 import os
 import urllib.request, urllib.parse, urllib.error
 from urllib.response import addinfourl
-from urllib.error import URLError
 import mimetypes
 
 import logging
@@ -63,7 +62,7 @@ class ProxyServe():
         else:
             f_req = urllib.request.Request(url)
 
-        f_req.timeout = 30 # set timeout to avoid zombie threads
+        f_req.timeout = 15 # set timeout to avoid zombie threads
 
         # setting proxy also works
         # if ip:
@@ -87,15 +86,19 @@ class ProxyServe():
 
         try:
             f_res = urllib.request.urlopen(f_req)
-        except URLError as e:
-            data = str(e.reason).encode('utf-8')
+        except Exception as e:
+            if hasattr(e, 'reason'):
+                reason = str(e.reason).encode('utf-8')
+            else:
+                # otherwise use class name
+                reason = e.__class__.__name__
 
-            logger.error('Error openning url (%s): %s' % (data, url))
+            logger.error('Error openning url (%s): %s' % (reason, url))
 
             headers = []
             headers.append(['Content-Type', 'text/plain'])
-            headers.append(['Content-Length', str(len(data))])
-            return ('200 OK', headers, [data])
+            headers.append(['Content-Length', str(len(reason))])
+            return ('200 OK', headers, [reason])
 
         # forward headers
         headers = []
