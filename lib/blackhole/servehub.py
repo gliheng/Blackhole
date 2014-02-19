@@ -234,11 +234,13 @@ class ConcatServe:
                 del cls.part_list[concat]
             del cls.min_list[config_file]
 
-        # add new config
-        home_dir = os.path.dirname(config_file)
-
         config = configparser.ConfigParser()
         config.read(config_file)
+
+        # add new config
+        home_dir = os.path.dirname(config_file)
+        src_dir = config.get('global', 'src_dir', fallback='.')
+        home_dir = os.path.join(home_dir, src_dir)
 
         concat = config['concat']
 
