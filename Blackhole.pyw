@@ -15,7 +15,8 @@ import logging
 # logging.basicConfig(level = logging.DEBUG, handlers=(rotateLogger,))
 logging.basicConfig(level = logging.DEBUG)
 
-cwd = os.path.dirname(__file__)
+# on mac, __file__ return the file name only
+cwd = os.path.dirname(__file__) or '.'
 os.chdir(cwd)
 
 if len(sys.argv) > 1:

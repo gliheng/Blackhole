@@ -27,7 +27,6 @@ class MainFrame(Frame):
         self.capture_btn.invoke()
         
     def createUI(self):
-
         btn = Button(self, text='Capture', command=self.toggleCapture)
         btn.config(image=IMAGES['link'], compound=TOP)
         btn.grid(row=0, column=0, sticky=W+E+N+S)
@@ -74,6 +73,7 @@ class MainFrame(Frame):
     def toggleCapture(self):
         ''' Toggle listen button handler
         '''
+        # TODO: this variable should not depend on RegHandler
         if RegHandler.active == False:
 
             # set registry on windows
@@ -454,7 +454,11 @@ def init(_config):
     # main window
     main_frame = MainFrame(root)
 
-    root.iconbitmap(default='data/img/app.ico')
+    try:
+        # this throws on my mac
+        root.iconbitmap(default='data/img/app.ico')
+    except:
+        pass
     root.protocol('WM_DELETE_WINDOW', app_quit)
 #    root.resizable(False,False)
     root.title('Blackhole %s' % config.version)

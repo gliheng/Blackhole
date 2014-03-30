@@ -1,5 +1,10 @@
 import logging
-import winreg
+import os
+if os.name == 'nt':
+    import winreg
+else:
+    winreg = None
+
 import subprocess
 
 from blackhole.confparser import getConfig
@@ -11,24 +16,27 @@ class RegHandler():
 
     active = False
 
-    key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-            r'Software\Microsoft\Windows\CurrentVersion\Internet Settings',
-            0, winreg.KEY_ALL_ACCESS)
+    if winreg:
 
-    try:
-        oldProxyEnable = winreg.QueryValueEx(key, 'ProxyEnable')[0]
-        oldProxyServer = winreg.QueryValueEx(key, 'ProxyServer')[0]
-    except:
-        oldProxyEnable = 0
-        oldProxyServer = ''
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                r'Software\Microsoft\Windows\CurrentVersion\Internet Settings',
+                0, winreg.KEY_ALL_ACCESS)
 
-    try:
-        oldAutoConfig = winreg.QueryValueEx(key, 'AutoConfigURL')[0]
-    except:
-        oldAutoConfig = None
+        try:
+            oldProxyEnable = winreg.QueryValueEx(key, 'ProxyEnable')[0]
+            oldProxyServer = winreg.QueryValueEx(key, 'ProxyServer')[0]
+        except:
+            oldProxyEnable = 0
+            oldProxyServer = ''
+
+        try:
+            oldAutoConfig = winreg.QueryValueEx(key, 'AutoConfigURL')[0]
+        except:
+            oldAutoConfig = None
 
     @classmethod
     def activate(cls, port):
+        if not winreg: return
         if cls.active: return
 
         logging.info('Registry set.')
@@ -48,6 +56,7 @@ class RegHandler():
 
     @classmethod
     def deactivate(cls):
+        if not winreg: return
         if not cls.active: return
 
         logging.info('Registry restored.')
