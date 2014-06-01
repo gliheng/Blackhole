@@ -1,22 +1,15 @@
 import logging
 import os
-if os.name == 'nt':
-    import winreg
-else:
-    winreg = None
-
 import subprocess
 
 from blackhole.confparser import getConfig
 
-class RegHandler():
-    '''
-    Utility to active and deactivate WinINET settings
-    '''
+if os.name == 'nt':
 
-    active = False
-
-    if winreg:
+    class RegHandler():
+        '''
+        Utility to active and deactivate WinINET settings
+        '''
 
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                 r'Software\Microsoft\Windows\CurrentVersion\Internet Settings',
@@ -34,43 +27,55 @@ class RegHandler():
         except:
             oldAutoConfig = None
 
-    @classmethod
-    def activate(cls, port):
-        if not winreg: return
-        if cls.active: return
+        @classmethod
+        def activate(cls, port, service):
+            if not winreg: return
 
-        logging.info('Registry set.')
-        cls.active = True
+            logging.info('Registry set.')
 
-        winreg.SetValueEx(cls.key, 'ProxyEnable', 0,
-                winreg.REG_DWORD, 1)
-        winreg.SetValueEx(cls.key, 'ProxyServer', 0,
-                winreg.REG_SZ, 'http=127.0.0.1:%d' % port)
+            winreg.SetValueEx(cls.key, 'ProxyEnable', 0,
+                    winreg.REG_DWORD, 1)
+            winreg.SetValueEx(cls.key, 'ProxyServer', 0,
+                    winreg.REG_SZ, 'http=127.0.0.1:%d' % port)
 
-        if cls.oldAutoConfig:
-            winreg.DeleteValue(cls.key, 'AutoConfigURL')
+            if cls.oldAutoConfig:
+                winreg.DeleteValue(cls.key, 'AutoConfigURL')
 
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
 
-    @classmethod
-    def deactivate(cls):
-        if not winreg: return
-        if not cls.active: return
+        @classmethod
+        def deactivate(cls):
+            if not winreg: return
 
-        logging.info('Registry restored.')
-        cls.active = False
+            logging.info('Registry restored.')
 
-        winreg.SetValueEx(cls.key, 'ProxyEnable', 0,
-                winreg.REG_DWORD, cls.oldProxyEnable)
-        winreg.SetValueEx(cls.key, 'ProxyServer', 0,
-                winreg.REG_SZ, cls.oldProxyServer)
+            winreg.SetValueEx(cls.key, 'ProxyEnable', 0,
+                    winreg.REG_DWORD, cls.oldProxyEnable)
+            winreg.SetValueEx(cls.key, 'ProxyServer', 0,
+                    winreg.REG_SZ, cls.oldProxyServer)
 
-        if cls.oldAutoConfig:
-            winreg.SetValueEx(cls.key, 'AutoConfigURL', 0,
-                    winreg.REG_SZ, cls.oldAutoConfig)
+            if cls.oldAutoConfig:
+                winreg.SetValueEx(cls.key, 'AutoConfigURL', 0,
+                        winreg.REG_SZ, cls.oldAutoConfig)
 
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
+
+else:
+    class RegHandler():
+
+        @classmethod
+        def activate(cls, port, service):
+            cls.service = service
+            subprocess.check_call('networksetup -setwebproxy "%s" %s %s' % (service, '127.0.0.1', port),
+                    shell=True)
+            subprocess.check_call('networksetup -setwebproxystate "%s" on' % service,
+                    shell=True)
+
+        @classmethod
+        def deactivate(cls):
+            subprocess.check_call('networksetup -setwebproxystate "%s" off' % cls.service,
+                    shell=True)

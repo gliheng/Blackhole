@@ -1,4 +1,5 @@
 import re
+import sys
 import subprocess
 import threading 
 
@@ -22,9 +23,17 @@ class MainFrame(Frame):
         self.pack(expand=YES, fill=BOTH, padx=4, pady=4)
 
         self.createUI()
-        #self.centerWindowOnScreen()
+        self.captureActve = False
+        # self.centerWindowOnScreen()
 
-        self.capture_btn.invoke()
+        # self.capture_btn.invoke()
+    
+    def quit(self):
+        if self.captureActve:
+            RegHandler.deactivate()
+            self.captureActve = False
+
+        sys.exit(0)
         
     def createUI(self):
         btn = Button(self, text='Capture', command=self.toggleCapture)
@@ -49,7 +58,7 @@ class MainFrame(Frame):
         btn.config(image=IMAGES['log'], compound=TOP)
         btn.grid(row=1, column=1, sticky=W+E+N+S)
 
-        btn = Button(self, text="Quit", command=app_quit)
+        btn = Button(self, text="Quit", command=self.quit)
         btn.config(image=IMAGES['quit'], compound=TOP)
         btn.grid(row=1, column=2, sticky=W+E+N+S)
 
@@ -71,23 +80,30 @@ class MainFrame(Frame):
         win.geometry("%dx%d%+d%+d" % (width, height, xoffset, yoffset))
 
     def toggleCapture(self):
-        ''' Toggle listen button handler
+        ''' Capture button toggle handler
         '''
-        # TODO: this variable should not depend on RegHandler
-        if RegHandler.active == False:
 
-            # set registry on windows
-            RegHandler.activate(config.port)
-
-
-            self.capture_btn.config(text='Stop', image=IMAGES['unlink'])
-            self.status_bar.config(text=RUNMSG)
-
-        else:
+        if self.captureActve:
             RegHandler.deactivate()
+            self.captureActve = False
 
             self.capture_btn.config(text='Capture', image=IMAGES['link'])
             self.status_bar.config(text='Server has stopped')
+
+        else:
+            def activate(service=None):
+                # set registry on windows
+                RegHandler.activate(config.port, service)
+                self.captureActve = True
+
+                self.capture_btn.config(text='Stop', image=IMAGES['unlink'])
+                self.status_bar.config(text=RUNMSG)
+
+            if sys.platform == 'darwin':
+                NetworkSelector.toggle(activate)
+            else:
+                activate()
+
 
     def clearCache(self):
         ''' clearCache
@@ -126,15 +142,45 @@ class ToolWindow(Toplevel):
 
         self.bind('<Escape>', lambda e: self.toggle())
 
+    def destroy(self):
+        super().destroy()
+
+        cls = self.__class__
+        delattr(cls, 'inst')
+
     @classmethod
-    def toggle(cls):
+    def toggle(cls, *args):
         ''' Toggle log window visibility
         '''
         if hasattr(cls, 'inst'):
             cls.inst.destroy()
             delattr(cls, 'inst')
         else:
-            setattr(cls, 'inst', cls(root))
+            inst = cls(root, *args)
+            setattr(cls, 'inst', inst)
+
+
+class NetworkSelector(ToolWindow):
+
+    def __init__(self, parent, callback):
+        ToolWindow.__init__(self, parent)
+        self.callback = callback
+
+        services = subprocess.check_output('networksetup -listallnetworkservices', shell=True)
+        services = services.splitlines()[1:]
+
+        self.serviceVar = StringVar()
+        for service in services:
+            Radiobutton(self, text=service, variable=self.serviceVar, value=service, command=self.onSelect).pack(side=TOP, anchor=W)
+
+    def onSelect(self):
+        selected = self.serviceVar.get()
+
+        if hasattr(self, 'callback'):
+            self.callback(selected)
+
+        self.destroy()
+
 
 class ConfigWin(ToolWindow):
     ''' This is the config window
@@ -453,23 +499,14 @@ def init(_config):
 
     # main window
     main_frame = MainFrame(root)
+    root.protocol('WM_DELETE_WINDOW', main_frame.quit)
 
     try:
         # this throws on my mac
         root.iconbitmap(default='data/img/app.ico')
     except:
         pass
-    root.protocol('WM_DELETE_WINDOW', app_quit)
 #    root.resizable(False,False)
     root.title('Blackhole %s' % config.version)
     root.mainloop()
 
-def app_quit():
-    ''' Quit handler
-    '''
-    RegHandler.deactivate()
-
-    # server.stop()
-    root.quit()
-
-    sys.exit(0)
