@@ -475,7 +475,7 @@ def init(_config):
     global IMAGES
     global root
 
-    INITMSG = "Startings..."
+    INITMSG = "Ready"
     RUNMSG = 'Capturing traffic via localhost:%d' % config.port
     STOPMSG = 'Capturing has stopped'
 
