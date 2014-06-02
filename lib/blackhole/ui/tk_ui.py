@@ -67,9 +67,9 @@ class MainFrame(Frame):
 
         self.rowconfigure(0, weight=1, minsize=80)
         self.rowconfigure(1, weight=1, minsize=80)
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=1)
+        self.columnconfigure(0, weight=1, minsize=100)
+        self.columnconfigure(1, weight=1, minsize=100)
+        self.columnconfigure(2, weight=1, minsize=100)
 
     def centerWindowOnScreen(self):
         win = self.winfo_toplevel()
@@ -472,8 +472,8 @@ def init(_config):
     global INITMSG
     global RUNMSG
     global STOPMSG
-    global root
     global IMAGES
+    global root
 
     INITMSG = "Startings..."
     RUNMSG = 'Capturing traffic via localhost:%d' % config.port
