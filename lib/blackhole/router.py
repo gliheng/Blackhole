@@ -62,11 +62,14 @@ class Router():
         qzmin: qzmin js concat rule
         DEFAULT: get response as is
         '''
+        # use unix seprator
+        spec = spec.replace('\\', '/')
+
         if self.__class__.ip_re.match(spec):
             spec_type = 'ip'
         elif spec.startswith('*') :
             spec_type = 'special'
-        elif spec.endswith(('/', '\\')):
+        elif spec.endswith(('/')):
             spec_type = 'dir'
         elif spec.endswith(('.cfg', '.qzmin')):
             spec_type = 'concat'
