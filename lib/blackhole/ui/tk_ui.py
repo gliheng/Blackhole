@@ -142,6 +142,8 @@ class ToolWindow(Toplevel):
 
         self.bind('<Escape>', lambda e: self.toggle())
 
+        setattr(self.__class__, 'inst', self)
+
     def destroy(self):
         super().destroy()
 
@@ -154,10 +156,8 @@ class ToolWindow(Toplevel):
         '''
         if hasattr(cls, 'inst'):
             cls.inst.destroy()
-            delattr(cls, 'inst')
         else:
             inst = cls(root, *args)
-            setattr(cls, 'inst', inst)
 
 
 class NetworkSelector(ToolWindow):
