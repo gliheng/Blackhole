@@ -1,4 +1,5 @@
 import os
+import re
 import urllib.request, urllib.parse, urllib.error
 from urllib.response import addinfourl
 import mimetypes
@@ -150,6 +151,10 @@ class SpecialServe():
         if rule.startswith('*redir:'):
             loc = rule.lstrip('*redir:')
             return ['302 Found', [('Location', loc)], []]
+
+        elif re.match(r'\*(\d+):(\w+)', rule):
+            m = re.search(r'\*(\d+):(\w+)', rule).groups()
+            return ['%s %s' % m, None, None]
 
 import configparser
 class ConcatServe:
