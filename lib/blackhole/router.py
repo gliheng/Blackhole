@@ -174,8 +174,8 @@ class Router():
 
         self.onResponse({'idx': idx, 'status': res[0]})
 
-        start_response(res[0], res[1])
-        return res[2]
+        start_response(res[0], res[1] or [])
+        return res[2] or []
 
     def preOperations(self, addons, request):
         ''' Pre processing before response is received

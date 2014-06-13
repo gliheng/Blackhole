@@ -6,6 +6,7 @@ from blackhole.confparser import getConfig
 
 if os.name == 'nt':
 
+    import winreg
     class RegHandler():
         '''
         Utility to active and deactivate WinINET settings
