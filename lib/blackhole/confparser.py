@@ -16,6 +16,7 @@ class Configuration():
             self.sep = eval('"' + config.defaults().get('seperator', '\\t') + '"')
             self.port = eval(config.defaults().get('port', '8000'))
             self.allow_remote_conn = eval(config.defaults().get('allow_remote_conn', 'False'))
+            self.tunnel_host = config.defaults().get('tunnel_host', 'www.example.com')
 
         except:
             logger.critical("Can't parse the config file: %s." % config_file)

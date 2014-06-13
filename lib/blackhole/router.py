@@ -87,9 +87,18 @@ class Router():
 
     def handler(self, environ, start_response):
 
+        # if request come from ngrok client
+        if environ['HTTP_HOST'].endswith('.ngrok.com'):
+            environ['HTTP_HOST'] = self.config.tunnel_host
+
         url = environ['REQUEST_URI'].decode('ascii', errors='ignore')
+        # relative url found, get absolute url from host header
+        if not url.startswith(('http://', 'https://')):
+            url = 'http://' + environ['HTTP_HOST'] + url
+
         logger.info('Incoming request: %s' % url)
         
+        # add count
         cls = self.__class__
         idx = cls.idx = cls.idx +1
 
