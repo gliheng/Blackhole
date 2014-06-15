@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import wsgiserver
-from blackhole.utils import Event
+import blackhole.utils as utils
 from blackhole.servehub import FileServe, ProxyServe, ConcatServe, QZServe, SpecialServe
 import blackhole.addons as addons
 
@@ -24,8 +24,8 @@ class Router():
     def __init__(self):
 
         self.reset_config()
-        self.onRequest = Event()
-        self.onResponse = Event()
+        self.onRequest = utils.Event()
+        self.onResponse = utils.Event()
 
     def reset_config(self):
 
@@ -87,15 +87,13 @@ class Router():
 
     def handler(self, environ, start_response):
 
-        # if request come from ngrok client
-        if environ['HTTP_HOST'].endswith('.ngrok.com'):
-            environ['HTTP_HOST'] = self.config.tunnel_host
+        # if request come from tunneling server client
+        for remote_host, local_host in self.config.tunnels.items():
+            if environ['HTTP_HOST'] == remote_host:
+                environ['HTTP_HOST'] = local_host
+                break
 
-        url = environ['REQUEST_URI'].decode('ascii', errors='ignore')
-        # relative url found, get absolute url from host header
-        if not url.startswith(('http://', 'https://')):
-            url = 'http://' + environ['HTTP_HOST'] + url
-
+        url = utils.get_absolute_url(environ)
         logger.info('Incoming request: %s' % url)
         
         # add count

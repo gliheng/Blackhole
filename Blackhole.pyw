@@ -27,7 +27,7 @@ else:
 
 sys.path.insert(0, 'lib')
 
-__version__ = '0.2'
+__version__ = '0.3'
 
 from blackhole.confparser import getConfig
 import blackhole.router as router

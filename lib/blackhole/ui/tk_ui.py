@@ -8,12 +8,14 @@ from logging.handlers import RotatingFileHandler
 logger = logging.getLogger(__name__)
 
 from tkinter import *
-#from tkinter.tix import *
 from tkinter.ttk import *
+import tkinter.messagebox
 
 from blackhole.reghandler import RegHandler
 import blackhole.router as server
 from blackhole.confparser import getConfig
+
+from ..external import tunnel
 
 
 class MainFrame(Frame):
@@ -29,6 +31,7 @@ class MainFrame(Frame):
         # self.capture_btn.invoke()
     
     def quit(self):
+        # deactivate proxy configuration
         if self.captureActve:
             RegHandler.deactivate()
             self.captureActve = False
@@ -36,40 +39,68 @@ class MainFrame(Frame):
         sys.exit(0)
         
     def createUI(self):
-        btn = Button(self, text='Capture', command=self.toggleCapture)
+
+        note = Notebook(self)
+
+        tab1 = Frame(note)
+        tab2 = Frame(note)
+
+        note.add(tab1, text = "Essential", compound=TOP)
+        note.add(tab2, text = "Utility", compound=TOP)
+        note.pack(expand=YES, fill=BOTH)
+
+        self.setupTab1(tab1)
+        self.setupTab2(tab2)
+
+        # status bar
+        self.status_bar = Label(self, text=INITMSG, style='Status.TLabel')
+        self.status_bar.pack(side=BOTTOM, expand=NO, fill=X, pady=6)
+
+    def layoutTab(self, tab):
+        tab.rowconfigure(0, weight=1, minsize=80)
+        tab.rowconfigure(1, weight=1, minsize=80)
+        tab.rowconfigure(2, weight=1, minsize=80)
+        tab.columnconfigure(0, weight=1, minsize=80)
+        tab.columnconfigure(1, weight=1, minsize=80)
+
+    def setupTab1(self, tab):
+
+        btn = Button(tab, text='Capture', command=self.toggleCapture)
         btn.config(image=IMAGES['link'], compound=TOP)
         btn.grid(row=0, column=0, sticky=W+E+N+S)
 
         self.capture_btn = btn
 
-        btn = Button(self, text="ClearCache", command=self.clearCache)
-        btn.config(image=IMAGES['clearCache'], compound=TOP)
+        btn = Button(tab, text="Tunnel", command=self.toggleTunnel)
+        btn.config(image=IMAGES['tunnel'], compound=TOP)
         btn.grid(row=0, column=1, sticky=W+E+N+S)
 
-        btn = Button(self, text="ClearCookie", command=self.clearCookie)
-        btn.config(image=IMAGES['clearCookie'], compound=TOP)
-        btn.grid(row=0, column=2, sticky=W+E+N+S)
+        self.tunnel_btn = btn
 
-        btn = Button(self, text="Config", command=ConfigWin.toggle)
+        btn = Button(tab, text="Config", command=ConfigWin.toggle)
         btn.config(image=IMAGES['config'], compound=TOP)
         btn.grid(row=1, column=0, sticky=W+E+N+S)
 
-        btn = Button(self, text="Log", command=LogWin.toggle)
+        btn = Button(tab, text="Log", command=LogWin.toggle)
         btn.config(image=IMAGES['log'], compound=TOP)
         btn.grid(row=1, column=1, sticky=W+E+N+S)
 
-        btn = Button(self, text="Quit", command=self.quit)
+        btn = Button(tab, text="Quit", command=self.quit)
         btn.config(image=IMAGES['quit'], compound=TOP)
-        btn.grid(row=1, column=2, sticky=W+E+N+S)
+        btn.grid(row=2, column=0, sticky=W+E+N+S)
+        self.layoutTab(tab)
 
-        self.status_bar = Label(self, text=INITMSG, style='Status.TLabel')
-        self.status_bar.grid(row=2, column=0, columnspan=3, sticky=W+E+N+S)
+    def setupTab2(self, tab):
+        # tab2
+        btn = Button(tab, text="ClearCache", command=self.clearCache)
+        btn.config(image=IMAGES['clearCache'], compound=TOP)
+        btn.grid(row=0, column=0, sticky=W+E+N+S)
 
-        self.rowconfigure(0, weight=1, minsize=80)
-        self.rowconfigure(1, weight=1, minsize=80)
-        self.columnconfigure(0, weight=1, minsize=100)
-        self.columnconfigure(1, weight=1, minsize=100)
-        self.columnconfigure(2, weight=1, minsize=100)
+        btn = Button(tab, text="ClearCookie", command=self.clearCookie)
+        btn.config(image=IMAGES['clearCookie'], compound=TOP)
+        btn.grid(row=0, column=1, sticky=W+E+N+S)
+
+        self.layoutTab(tab)
 
     def centerWindowOnScreen(self):
         win = self.winfo_toplevel()
@@ -93,16 +124,25 @@ class MainFrame(Frame):
         else:
             def activate(service=None):
                 # set registry on windows
-                RegHandler.activate(config.port, service)
-                self.captureActve = True
+                try:
+                    RegHandler.activate(config.port, service)
+                except:
+                    pass
+                else:
+                    self.captureActve = True
 
-                self.capture_btn.config(text='Stop', image=IMAGES['unlink'])
-                self.status_bar.config(text=RUNMSG)
+                    self.capture_btn.config(text='Stop', image=IMAGES['unlink'])
+                    self.status_bar.config(text=RUNMSG)
 
             if sys.platform == 'darwin':
                 NetworkSelector.toggle(activate)
             else:
                 activate()
+
+    def toggleTunnel(self):
+        ''' Capture button toggle handler
+        '''
+        TunnelPanel.toggle()
 
 
     def clearCache(self):
@@ -132,32 +172,42 @@ class ToolWindow(Toplevel):
     ''' A singleton window class
     '''
 
-    def __init__(self, parent):
+    def __init__(self, parent, preserveState=False):
+        self.preserveState = preserveState
         Toplevel.__init__(self, parent)
         self.transient(parent)
         # self.attributes('-toolwindow', True)
         # self.lift() # this doesn't seem to work with transitent window
 
-        self.protocol("WM_DELETE_WINDOW", self.__class__.toggle)
+        self.protocol("WM_DELETE_WINDOW", self.__toggle)
+        self.bind('<Escape>', lambda e: self.__toggle())
 
-        self.bind('<Escape>', lambda e: self.toggle())
+    def __toggle(self):
+        if self.preserveState:
+            if self.state() == 'withdrawn':
+                self.deiconify()
+            else:
+                self.withdraw()
 
-        setattr(self.__class__, 'inst', self)
+        else:
+            self.destroy()
 
-    def destroy(self):
-        super().destroy()
+            cls = self.__class__
+            delattr(cls, 'inst')
 
-        cls = self.__class__
-        delattr(cls, 'inst')
+    @classmethod
+    def getInstance(cls):
+        if hasattr(cls, 'inst'):
+            return cls.inst
 
     @classmethod
     def toggle(cls, *args):
         ''' Toggle log window visibility
         '''
-        if hasattr(cls, 'inst'):
-            cls.inst.destroy()
+        if not hasattr(cls, 'inst'):
+            cls.inst = cls(root, *args)
         else:
-            inst = cls(root, *args)
+            cls.inst.__toggle()
 
 
 class NetworkSelector(ToolWindow):
@@ -180,6 +230,61 @@ class NetworkSelector(ToolWindow):
             self.callback(selected)
 
         self.destroy()
+
+
+class TunnelPanel(ToolWindow):
+
+    tunnel = None
+
+    def __init__(self, parent):
+        ToolWindow.__init__(self, parent, True)
+        self.geometry('200x200')
+
+        self.isConnecting = False
+        self.btn = Button(self, text='Connect', command=self.onConnect)
+        self.btn.pack(padx=6, pady=6)
+
+        self.label = Label(self)
+        self.activeHosts = set()
+
+    def run(self):
+        self.tunnel = tunnel.Tunnel(config.port, config.tunnels.keys(), config.tunnelServer)
+        self.tunnel.onMsg += self.onMsg
+        self.tunnel.start()
+
+    def onMsg(self, signal, text):
+        if signal == 'connect':
+            self.activeHosts.add(text)
+
+            self.label.config(text=self.getLabel())
+            self.btn.config(text='Disconnect')
+
+    def getLabel(self):
+        connected = {host: domain for host, domain in config.tunnels.items() if host in self.activeHosts}
+        l = [host + '\n---> ' + domain + '\n' for host, domain in connected.items()]
+
+        return '\n'.join(l)
+
+
+    def onConnect(self):
+        if not config.tunnels:
+            tkinter.messagebox.showinfo('Warning', 'At lease one tunnel should be configured to use')
+            return
+
+        if self.isConnecting:
+            self.isConnecting = False
+            self.btn.config(text='Connect')
+            self.label.config(text='')
+            self.label.pack_forget()
+
+            self.tunnel.stop()
+        else:
+            self.isConnecting = True
+            self.label.config(text='Connecting...')
+            self.label.pack()
+
+            if not self.tunnel or not self.tunnel.is_alive():
+                self.run()
 
 
 class ConfigWin(ToolWindow):
@@ -488,7 +593,9 @@ def init(_config):
         'clearCache': PhotoImage(file='data/img/clearCache.gif'),
         'config': PhotoImage(file='data/img/config.gif'),
         'log': PhotoImage(file='data/img/log.gif'),
-        'quit': PhotoImage(file='data/img/quit.gif')
+        'quit': PhotoImage(file='data/img/quit.gif'),
+        'tunnel': PhotoImage(file='data/img/tunnel.gif'),
+        'qrcode': PhotoImage(file='data/img/qrcode.gif')
     }
 
     # setup styles and resources

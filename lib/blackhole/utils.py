@@ -101,3 +101,12 @@ class CmdProxy():
         
     def connect_stdout(self):
         pass
+
+def get_absolute_url(environ):
+
+    url = environ['REQUEST_URI'].decode('ascii', errors='ignore')
+    # relative url found, get absolute url from host header
+    if not url.startswith(('http://', 'https://')):
+        url = 'http://' + environ['HTTP_HOST'] + url
+
+    return url

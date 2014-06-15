@@ -16,10 +16,28 @@ class Configuration():
             self.sep = eval('"' + config.defaults().get('seperator', '\\t') + '"')
             self.port = eval(config.defaults().get('port', '8000'))
             self.allow_remote_conn = eval(config.defaults().get('allow_remote_conn', 'False'))
-            self.tunnel_host = config.defaults().get('tunnel_host', 'www.example.com')
+
+            self.tunnelServer = config.defaults().get('tunnel_server', '')
 
         except:
             logger.critical("Can't parse the config file: %s." % config_file)
+
+        self.parseTunnels(config)
+        self.parseRules(config)
+
+    def parseTunnels(self, config):
+        self.tunnels = {}
+
+        tunnels = config.defaults().get('tunnels', '')
+        for line in tunnels.split('\n'):
+            if not line:
+                continue
+            pair = line.split(self.sep)
+            if len(pair) == 2:
+                self.tunnels[pair[0]] = pair[1]
+
+
+    def parseRules(self, config):
 
         self.rules = []
         for sec in config.sections():
@@ -29,10 +47,11 @@ class Configuration():
                 enabled = config.getboolean(sec, 'enabled')
             if not enabled: continue
 
-            line_rules = config.get(sec, 'rules')
-            for rule in line_rules.split('\n'):
-                if rule:
-                    self.rules.append(rule.split(self.sep))
+            rules = config.get(sec, 'rules')
+            for line in rules.split('\n'):
+                if not line:
+                    continue
+                self.rules.append(line.split(self.sep))
 
 def getConfig(config_file):
     return Configuration(config_file)
