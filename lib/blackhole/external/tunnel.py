@@ -8,6 +8,9 @@ from string import Template
 from ..utils import Event
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 config_tmpl = Template('''
 server_addr: ${server}
 tunnels:
@@ -34,6 +37,9 @@ class Tunnel(threading.Thread):
                 buf.append(item_tmpl.substitute(host=host, port=port, service=service))
             s = '\n'.join(buf).encode('utf-8')
             fil.write(s)
+
+        logger.info('Ngrok config up at %s' % fil.name)
+
         threading.Thread.__init__(self, daemon=True)
         cmd = 'ngrok -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
         self.cmd = cmd
@@ -41,6 +47,8 @@ class Tunnel(threading.Thread):
         self.onMsg = Event()
 
     def run(self):
+        logger.info('Running command: %s' % self.cmd)
+
         self.proc = subprocess.Popen(self.cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

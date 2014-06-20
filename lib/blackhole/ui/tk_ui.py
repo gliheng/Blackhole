@@ -250,6 +250,7 @@ class TunnelPanel(ToolWindow):
     def run(self):
         self.tunnel = tunnel.Tunnel(config.port, config.tunnels.keys(), config.tunnelServer)
         self.tunnel.onMsg += self.onMsg
+
         self.tunnel.start()
 
     def onMsg(self, signal, text):
