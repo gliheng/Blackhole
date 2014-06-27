@@ -614,7 +614,7 @@ def init(_config):
         root.iconbitmap(default='data/img/app.ico')
     except:
         pass
-#    root.resizable(False,False)
+    root.resizable(False,False)
     root.title('Blackhole %s' % config.version)
     root.mainloop()
 
