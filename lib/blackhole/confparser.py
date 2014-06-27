@@ -47,7 +47,14 @@ class Configuration():
                 enabled = config.getboolean(sec, 'enabled')
             if not enabled: continue
 
-            rules = config.get(sec, 'rules')
+            try:
+                rules = config.get(sec, 'rules')
+            except:
+                # from tkinter import messagebox
+                # messagebox.showwarning("Error", 'Cant\'t read configuration')
+                logger.critical("Can't parse rule: %s." % sec)
+                continue
+
             for line in rules.split('\n'):
                 if not line:
                     continue
