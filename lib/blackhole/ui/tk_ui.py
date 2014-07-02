@@ -54,7 +54,11 @@ class MainFrame(Frame):
 
         # status bar
         self.status_bar = Label(self, text=INITMSG, style='Status.TLabel')
-        self.status_bar.pack(side=BOTTOM, expand=NO, fill=X, pady=6)
+        self.status_bar.pack(side=BOTTOM, expand=NO, fill=X)
+
+        # size is not controlled by children
+        self.pack_propagate(0)
+        self.config(width=190, height=310)
 
     def layoutTab(self, tab):
         tab.rowconfigure(0, weight=1, minsize=80)
@@ -603,6 +607,7 @@ def init(_config):
     style = Style()
     style.configure('Tip.TLabel', foreground='red')
     style.configure('Status.TLabel', padding=2, relief=SUNKEN, font='Calibri 12 bold')
+    # diable menu tearoff
     root.option_add('*tearOff', FALSE)
 
     # main window
@@ -614,6 +619,7 @@ def init(_config):
         root.iconbitmap(default='data/img/app.ico')
     except:
         pass
+
     root.resizable(False,False)
     root.title('Blackhole %s' % config.version)
     root.mainloop()

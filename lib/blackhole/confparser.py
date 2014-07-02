@@ -3,6 +3,7 @@ logger = logging.getLogger(__name__)
 
 import sys
 import configparser
+from .ui.tk_dialog import showwarning
 
 class Configuration():
 
@@ -50,8 +51,7 @@ class Configuration():
             try:
                 rules = config.get(sec, 'rules')
             except:
-                # from tkinter import messagebox
-                # messagebox.showwarning("Error", 'Cant\'t read configuration')
+                showwarning("Error", 'Error reading configuration')
                 logger.critical("Can't parse rule: %s." % sec)
                 continue
 
