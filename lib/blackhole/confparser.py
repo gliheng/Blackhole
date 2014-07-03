@@ -5,6 +5,9 @@ import sys
 import configparser
 from .ui.tk_dialog import showwarning
 
+__version__ = '0.3'
+
+
 class Configuration():
 
     def __init__(self, config_file):
@@ -61,4 +64,8 @@ class Configuration():
                 self.rules.append(line.split(self.sep))
 
 def getConfig(config_file):
-    return Configuration(config_file)
+    config = Configuration(config_file)
+    config.version = __version__
+    config.config_file = config_file
+
+    return config

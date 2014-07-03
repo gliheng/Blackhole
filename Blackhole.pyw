@@ -27,8 +27,6 @@ else:
 
 sys.path.insert(0, 'lib')
 
-__version__ = '0.3'
-
 from blackhole.confparser import getConfig
 import blackhole.router as router
 import blackhole.ui.tk_ui as ui
@@ -37,8 +35,6 @@ import blackhole.ui.tk_ui as ui
 if __name__=='__main__':
 
     config = getConfig(CONFIG_FILE)
-    config.version = __version__
-    config.config_file = CONFIG_FILE
 
     router.run(config)
     ui.init(config)

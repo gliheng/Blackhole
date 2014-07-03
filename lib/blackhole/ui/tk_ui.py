@@ -384,7 +384,9 @@ class ConfigWin(ToolWindow):
         self.tip.config(text='Settings was Saved!')
         self.after(2000, lambda: self.tip.config(text=''))
 
-        server.reload(getConfig(config.config_file))
+        global config
+        config = getConfig(config.config_file)
+        server.reload(config)
 
 
 class LogGrid(Frame):

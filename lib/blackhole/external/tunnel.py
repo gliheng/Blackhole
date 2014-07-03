@@ -2,6 +2,7 @@ import subprocess
 import threading
 import re
 import os
+import sys
 import tempfile
 from string import Template
 
@@ -41,7 +42,14 @@ class Tunnel(threading.Thread):
         logger.info('Ngrok config up at %s' % fil.name)
 
         threading.Thread.__init__(self, daemon=True)
-        cmd = 'ngrok -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
+
+        if sys.platform == 'win32':
+            self.shell = False
+            cmd = './data/bin/ngrok.exe -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
+        else:
+            self.shell = True
+            cmd = 'ngrok -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
+
         self.cmd = cmd
 
         self.onMsg = Event()
@@ -52,15 +60,16 @@ class Tunnel(threading.Thread):
         self.proc = subprocess.Popen(self.cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                shell=True,
+                shell=self.shell,
                 bufsize=0)
 
         for line in self.proc.stdout:
-            print('>>>>>', line)
-            m = re.search(rb'Tunnel established at https?://(.*)\n', line)
+            line = line.decode('utf-8')
+            logger.debug('ngrok: ' + line)
+            m = re.search(r'Tunnel established at https?://(.*)\n', line)
             if m:
                 host = m.group(1)
-                self.onMsg('connect', host.decode('utf-8'))
+                self.onMsg('connect', host)
 
     def stop(self):
         self.proc.terminate()
