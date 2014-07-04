@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 from tkinter import *
 from tkinter.ttk import *
-import tkinter.messagebox
+
+import qrcode
 
 from blackhole.reghandler import RegHandler
 import blackhole.router as server
@@ -99,6 +100,10 @@ class MainFrame(Frame):
         btn.config(image=IMAGES['clearCookie'], compound=TOP)
         btn.grid(row=0, column=1, sticky=W+E+N+S)
 
+        btn = Button(tab, text="Qrcode", command=self.qrcode)
+        btn.config(image=IMAGES['qrcode'], compound=TOP)
+        btn.grid(row=1, column=0, sticky=W+E+N+S)
+
         self.layoutTab(tab)
 
     def centerWindowOnScreen(self):
@@ -165,6 +170,10 @@ class MainFrame(Frame):
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         subprocess.Popen(cmd, startupinfo=startupinfo)
+
+    def qrcode(self):
+        pass
+
 
 
 class ToolWindow(Toplevel):
