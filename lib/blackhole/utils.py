@@ -1,6 +1,7 @@
 import os
 import threading
 import subprocess
+import wsgiref.util
 
 class Event:
     def __init__(self):
@@ -104,9 +105,15 @@ class CmdProxy():
 
 def get_absolute_url(environ):
 
-    url = environ['REQUEST_URI'].decode('ascii', errors='ignore')
+    url = environ['REQUEST_URI'].decode('utf-8', errors='ignore')
     # relative url found, get absolute url from host header
     if not url.startswith(('http://', 'https://')):
         url = 'http://' + environ['HTTP_HOST'] + url
 
     return url
+
+def change_host(environ, host):
+    environ['blackhole.orig_host'] = environ['HTTP_HOST'] 
+    environ['HTTP_HOST'] = host
+    uri = wsgiref.util.request_uri(environ)
+    environ['REQUEST_URI'] = uri.encode('utf-8', errors='ignore')

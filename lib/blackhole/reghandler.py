@@ -1,10 +1,11 @@
+import sys
 import logging
-import os
 import subprocess
+import atexit
 
 from blackhole.confparser import getConfig
 
-if os.name == 'nt':
+if sys.platform == 'win32':
 
     import winreg
     class RegHandler():
@@ -65,7 +66,7 @@ if os.name == 'nt':
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
 
-else:
+elif sys.platform == 'darwin':
     class RegHandler():
 
         @classmethod
@@ -80,3 +81,5 @@ else:
         def deactivate(cls):
             subprocess.check_call('networksetup -setwebproxystate "%s" off' % cls.service,
                     shell=True)
+
+atexit.register(RegHandler.deactivate)

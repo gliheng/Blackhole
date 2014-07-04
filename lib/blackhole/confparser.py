@@ -30,15 +30,23 @@ class Configuration():
         self.parseRules(config)
 
     def parseTunnels(self, config):
-        self.tunnels = {}
+        self.tunnels = []
 
         tunnels = config.defaults().get('tunnels', '')
         for line in tunnels.split('\n'):
             if not line:
                 continue
-            pair = line.split(self.sep)
-            if len(pair) == 2:
-                self.tunnels[pair[0]] = pair[1]
+
+            seg = line.split(self.sep)
+            if len(seg) < 2:
+                continue
+
+            if len(seg) == 2:
+                group = {'remote': seg[0], 'local': seg[1]}
+            elif len(seg) == 3:
+                group = {'remote': seg[0], 'local': seg[1], 'addons': seg[2]}
+
+            self.tunnels.append(group)
 
 
     def parseRules(self, config):

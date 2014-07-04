@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 from string import Template
+import atexit
 
 from ..utils import Event
 
@@ -27,6 +28,8 @@ item_tmpl = Template('''
 class Tunnel(threading.Thread):
     def __init__(self, port, hosts=[], server='ngrok.com:4443'):
 
+        threading.Thread.__init__(self, daemon=True)
+
         # build yaml
         with tempfile.NamedTemporaryFile(delete=False) as fil:
             buf = []
@@ -41,8 +44,6 @@ class Tunnel(threading.Thread):
 
         logger.info('Ngrok config up at %s' % fil.name)
 
-        threading.Thread.__init__(self, daemon=True)
-
         if sys.platform == 'win32':
             self.shell = False
             cmd = './data/bin/ngrok.exe -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
@@ -51,16 +52,23 @@ class Tunnel(threading.Thread):
             cmd = 'ngrok -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
 
         self.cmd = cmd
+        self.proc = None
 
         self.onMsg = Event()
+        atexit.register(self.stop)
 
     def run(self):
         logger.info('Running command: %s' % self.cmd)
+
+        # hide console window on windows
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
         self.proc = subprocess.Popen(self.cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 shell=self.shell,
+                startupinfo=startupinfo,
                 bufsize=0)
 
         for line in self.proc.stdout:
@@ -72,7 +80,11 @@ class Tunnel(threading.Thread):
                 self.onMsg('connect', host)
 
     def stop(self):
-        self.proc.terminate()
+        if self.proc and not self.proc.poll():
+            logger.info('Kill running proc: %s' % self.cmd)
+            self.proc.terminate()
+
+        atexit.unregister(self.stop)
 
 
 '''

@@ -88,9 +88,11 @@ class Router():
     def handler(self, environ, start_response):
 
         # if request come from tunneling server client
-        for remote_host, local_host in self.config.tunnels.items():
-            if environ['HTTP_HOST'] == remote_host:
-                environ['HTTP_HOST'] = local_host
+        tunneling = False
+        for tunnel in self.config.tunnels:
+            if environ['HTTP_HOST'] == tunnel['remote']:
+                utils.change_host(environ, tunnel['local'])
+                tunneling = True
                 break
 
         url = utils.get_absolute_url(environ)
@@ -98,9 +100,10 @@ class Router():
         
         # add count
         cls = self.__class__
-        idx = cls.idx = cls.idx +1
+        idx = cls.idx = cls.idx + 1
 
         res = None
+        match = False
         for route in self.routes:
             m = re.match(route['url'], url)
 
@@ -109,7 +112,7 @@ class Router():
             # url matched the current rule
 
             # if 'addons' in route:
-            #     res = self.preOperations(route['addons'], environ = environ)
+            #     res = self.preOperations(route['addons'].split('|'), environ = environ)
 
             # if not res:
 
@@ -154,21 +157,31 @@ class Router():
 
             # make a 404 response if no res is returned
             if not res:
-                res = ['404 NOT FOUND', [], ['']]
+                res = ['404 NOT FOUND', [], [b'']]
 
-            # call addon methods after response
-            if 'addons' in route:
-                res = self.postOperations(route['addons'], request = environ, response = res)
-
+            match = True
             break
 
-
         # no match was found, serve the request as is
-        if not res:
+        if not match:
             logger.info('no match detected')
             self.onRequest({'idx':idx, 'type':'default', 'url': url, 'action': ''})
 
             res = ProxyServe.serve(url, environ = environ)
+
+
+        # call addon methods after response
+        addons = []
+
+        if match and 'addons' in route:
+            addons += route['addons'].split('|')
+
+        if tunneling and 'addons' in tunnel:
+            addons += tunnel['addons'].split('|')
+
+        if len(addons) > 0:
+            res = self.postOperations(addons, request = environ, response = res)
+
 
         self.onResponse({'idx': idx, 'status': res[0]})
 
@@ -192,11 +205,7 @@ class Router():
         if hasgzip:
             body = response[2] = gzip.GzipFile(fileobj=BytesIO(body)).read()
 
-        # TODO: assume page is utf-8 encoding
-        body = response[2] = body.decode('utf-8')
-
-        addon_list = addons.split('|')
-        for addon_line in addon_list:
+        for addon_line in addons:
             if ':' in addon_line:
                 addon, arg = addon_line.split(':', maxsplit=1)
             else:
@@ -207,11 +216,11 @@ class Router():
                 # if addon return empty value, it is ignored
                 klass = self.addons[addon]
 
-                ret = klass(response).post_edit(arg)
+                ret = klass(request, response).post_edit(arg)
                 if ret: response = ret
 
         # make it iterable again
-        response[2] = [response[2].encode('utf-8')]
+        response[2] = [response[2]]
 
         # fix headers
         # fix content-length

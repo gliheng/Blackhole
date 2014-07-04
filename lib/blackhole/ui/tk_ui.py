@@ -31,11 +31,6 @@ class MainFrame(Frame):
         # self.capture_btn.invoke()
     
     def quit(self):
-        # deactivate proxy configuration
-        if self.captureActve:
-            RegHandler.deactivate()
-            self.captureActve = False
-
         sys.exit(0)
         
     def createUI(self):
@@ -252,7 +247,8 @@ class TunnelPanel(ToolWindow):
         self.activeHosts = set()
 
     def run(self):
-        self.tunnel = tunnel.Tunnel(config.port, config.tunnels.keys(), config.tunnelServer)
+        hosts = [tunnel['remote'] for tunnel in config.tunnels]
+        self.tunnel = tunnel.Tunnel(config.port, hosts, config.tunnelServer)
         self.tunnel.onMsg += self.onMsg
 
         self.tunnel.start()
@@ -265,7 +261,7 @@ class TunnelPanel(ToolWindow):
             self.btn.config(text='Disconnect')
 
     def getLabel(self):
-        connected = {host: domain for host, domain in config.tunnels.items() if host in self.activeHosts}
+        connected = {tunnel['remote']: tunnel['local'] for tunnel in config.tunnels if tunnel['remote'] in self.activeHosts}
         l = [host + '\n---> ' + domain + '\n' for host, domain in connected.items()]
 
         return '\n'.join(l)

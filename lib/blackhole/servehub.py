@@ -128,7 +128,7 @@ class FileServe():
             data = open(path, 'rb').read()
         except:
             status = '404 NOT FOUND'
-            data = ''
+            data = b''
 
         # TODO: make this configurable?
         if os.path.splitext(path)[1] in ['.wsp', '.tmpl']:
@@ -154,7 +154,7 @@ class SpecialServe():
 
         elif re.match(r'\*(\d+):(\w+)', rule):
             m = re.search(r'\*(\d+):(\w+)', rule).groups()
-            return ['%s %s' % m, None, None]
+            return ['%s %s' % m, [], []]
 
 import configparser
 class ConcatServe:
