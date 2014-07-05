@@ -61,8 +61,11 @@ class Tunnel(threading.Thread):
         logger.info('Running command: %s' % self.cmd)
 
         # hide console window on windows
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        if sys.platform == 'win32':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        else:
+            startupinfo = None
 
         self.proc = subprocess.Popen(self.cmd,
                 stdout=subprocess.PIPE,

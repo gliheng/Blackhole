@@ -79,7 +79,8 @@ elif sys.platform == 'darwin':
 
         @classmethod
         def deactivate(cls):
-            subprocess.check_call('networksetup -setwebproxystate "%s" off' % cls.service,
+            if hasattr(cls, 'service'):
+                subprocess.check_call('networksetup -setwebproxystate "%s" off' % cls.service,
                     shell=True)
 
 atexit.register(RegHandler.deactivate)

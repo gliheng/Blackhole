@@ -54,7 +54,11 @@ class MainFrame(Frame):
 
         # size is not controlled by children
         self.pack_propagate(0)
-        self.config(width=190, height=310)
+
+        if sys.platform == 'win32':
+            self.config(width=190, height=310)
+        else:
+            self.config(width=250, height=360)
 
     def layoutTab(self, tab):
         tab.rowconfigure(0, weight=1, minsize=80)
@@ -157,8 +161,12 @@ class MainFrame(Frame):
         cmd = 'data/bin/CleanIETempFiles.exe -t -q'
         logger.info('Starting proc: %s' % cmd)
 
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        if sys.platform == 'win32':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        else:
+            startupinfo = None
+
         subprocess.Popen(cmd, startupinfo=startupinfo)
 
     def clearCookie(self):
@@ -167,13 +175,15 @@ class MainFrame(Frame):
         cmd = 'rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 2'
         logger.info('Starting proc: %s' % cmd)
 
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        if sys.platform == 'win32':
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        else:
+            startupinfo = None
         subprocess.Popen(cmd, startupinfo=startupinfo)
 
     def qrcode(self):
-        pass
-
+        QRCodePanel.toggle()
 
 
 class ToolWindow(Toplevel):
@@ -238,6 +248,35 @@ class NetworkSelector(ToolWindow):
             self.callback(selected)
 
         self.destroy()
+
+
+class QRCodePanel(ToolWindow):
+
+    def __init__(self, parent):
+        ToolWindow.__init__(self, parent)
+        self.geometry('400x400')
+
+        self.label = None
+
+        self.entry = entry = Entry(self, width=30)
+        entry.pack(padx=6, pady=6)
+        entry.bind('<KeyRelease>', self.genQRCode)
+
+    def genQRCode(self, e):
+        if self.label:
+            self.label.pack_forget()
+            self.label.destroy()
+            self.label = None
+
+        s = self.entry.get()
+        img = qrcode.make(s)
+
+        from PIL import Image, ImageTk
+        tkimg = ImageTk.PhotoImage(img.resize((300, 300), Image.ANTIALIAS))
+
+        self.label = Label(self, image=tkimg, anchor=CENTER)
+        self.image = tkimg # keep a reference, so that it's not GCed
+        self.label.pack(padx=6, pady=6, expand=YES, fill=BOTH)
 
 
 class TunnelPanel(ToolWindow):
