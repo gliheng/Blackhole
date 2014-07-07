@@ -285,9 +285,10 @@ class QRCodePanel(ToolWindow):
 
 class QRCodeShow(Toplevel):
 
-    def __init__(self, s, x=0, y=0):
-        Toplevel.__init__(self)
+    def __init__(self, parent, s, x=0, y=0):
+        Toplevel.__init__(self, parent)
         self.overrideredirect(True)
+        self.transient(parent)
 
         img = qrcode.make(s)
 
@@ -306,11 +307,11 @@ class QRCodeShow(Toplevel):
         self.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         
     @classmethod
-    def show(cls, s, x, y):
+    def show(cls, parent, s, x, y):
         if hasattr(cls, 'inst'):
             cls.hide()
 
-        cls.inst = QRCodeShow(s, x, y)
+        cls.inst = QRCodeShow(parent, s, x, y)
 
     @classmethod
     def hide(cls):
@@ -385,24 +386,23 @@ class TunnelPanel(ToolWindow):
 
         elif self.__state == self.CONNECTED:
             self.btn.config(text='Disconnect')
-            for host in self.activeHosts:
 
-                match = {tunnel['remote']: tunnel['local'] for tunnel in config.tunnels if tunnel['remote'] in self.activeHosts}
+            match = {tunnel['remote']: tunnel['local'] for tunnel in config.tunnels if tunnel['remote'] in self.activeHosts}
 
-                for host, domain in match.items():
-                    s = host + '\n---> ' + domain
-                    # add label
-                    label = Label(self.labelFrame, text=s)
+            for host, domain in match.items():
+                s = host + '\n---> ' + domain
+                # add label
+                label = Label(self.labelFrame, text=s)
 
-                    def showQRCode(e):
-                        widget = e.widget
-                        x = widget.winfo_rootx() + 10 + widget.winfo_width()
-                        y = widget.winfo_rooty() - 100
-                        QRCodeShow.show(host, x, y)
+                def showQRCode(e):
+                    widget = e.widget
+                    x = widget.winfo_rootx() + 10 + widget.winfo_width()
+                    y = widget.winfo_rooty() - 100
+                    QRCodeShow.show(self, host, x, y)
 
-                    label.bind('<Enter>', showQRCode)
-                    label.bind('<Leave>', lambda e: QRCodeShow.hide())
-                    label.pack()
+                label.bind('<Enter>', showQRCode)
+                label.bind('<Leave>', lambda e: QRCodeShow.hide())
+                label.pack()
 
         elif self.__state == self.IDLE:
             self.btn.config(text='Connect')
