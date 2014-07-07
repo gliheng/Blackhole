@@ -28,6 +28,7 @@ __version__ = "0.7"
 
 
 from PIL import Image, ImageFile, ImagePalette, _binary
+import math
 
 i8 = _binary.i8
 i16 = _binary.i16le
@@ -82,12 +83,13 @@ class BmpImageFile(ImageFile.ImageFile):
             colors = 0
             direction = -1
 
-        elif len(s) in [40, 64]:
+        elif len(s) in [40, 64, 108, 124]:
 
             # WIN 3.1 or OS/2 2.0 INFO
             bits = i16(s[14:])
             self.size = i32(s[4:]), i32(s[8:])
             compression = i32(s[16:])
+            pxperm = (i32(s[24:]), i32(s[28:]))  # Pixels per meter
             lutsize = 4
             colors = i32(s[32:])
             direction = -1
@@ -95,9 +97,15 @@ class BmpImageFile(ImageFile.ImageFile):
                 # upside-down storage
                 self.size = self.size[0], 2**32 - self.size[1]
                 direction = 0
+            
+            self.info["dpi"] = tuple(map(lambda x: math.ceil(x / 39.3701), pxperm))
 
         else:
             raise IOError("Unsupported BMP header type (%d)" % len(s))
+
+        if (self.size[0]*self.size[1]) > 2**31:
+            # Prevent DOS for > 2gb images
+            raise IOError("Unsupported BMP Size: (%dx%d)" % self.size)
 
         if not colors:
             colors = 1 << bits
@@ -129,6 +137,8 @@ class BmpImageFile(ImageFile.ImageFile):
             greyscale = 1
             if colors == 2:
                 indices = (0, 255)
+            elif colors > 2**16 or colors <=0: #We're reading a i32. 
+                raise IOError("Unsupported BMP Palette size (%d)" % colors)
             else:
                 indices = list(range(colors))
             for i in indices:
@@ -197,30 +207,37 @@ def _save(im, fp, filename, check=0):
     if check:
         return check
 
+    info = im.encoderinfo
+
+    dpi = info.get("dpi", (96, 96))
+
+    # 1 meter == 39.3701 inches
+    ppm = tuple(map(lambda x: int(x * 39.3701), dpi))
+
     stride = ((im.size[0]*bits+7)//8+3)&(~3)
     header = 40 # or 64 for OS/2 version 2
     offset = 14 + header + colors * 4
     image  = stride * im.size[1]
 
     # bitmap header
-    fp.write(b"BM" +                    # file type (magic)
-             o32(offset+image) +        # file size
-             o32(0) +                   # reserved
-             o32(offset))               # image data offset
+    fp.write(b"BM" +                      # file type (magic)
+             o32(offset+image) +          # file size
+             o32(0) +                     # reserved
+             o32(offset))                 # image data offset
 
     # bitmap info header
-    fp.write(o32(header) +              # info header size
-             o32(im.size[0]) +          # width
-             o32(im.size[1]) +          # height
-             o16(1) +                   # planes
-             o16(bits) +                # depth
-             o32(0) +                   # compression (0=uncompressed)
-             o32(image) +               # size of bitmap
-             o32(1) + o32(1) +          # resolution
-             o32(colors) +              # colors used
-             o32(colors))               # colors important
+    fp.write(o32(header) +                # info header size
+             o32(im.size[0]) +            # width
+             o32(im.size[1]) +            # height
+             o16(1) +                     # planes
+             o16(bits) +                  # depth
+             o32(0) +                     # compression (0=uncompressed)
+             o32(image) +                 # size of bitmap
+             o32(ppm[0]) + o32(ppm[1]) +  # resolution
+             o32(colors) +                # colors used
+             o32(colors))                 # colors important
 
-    fp.write(b"\0" * (header - 40))    # padding (for OS/2 format)
+    fp.write(b"\0" * (header - 40))       # padding (for OS/2 format)
 
     if im.mode == "1":
         for i in (0, 255):

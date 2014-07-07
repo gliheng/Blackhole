@@ -11,6 +11,7 @@
 # 1996-08-23 fl   Handle files from Macintosh (0.3)
 # 2001-02-17 fl   Use 're' instead of 'regex' (Python 2.1) (0.4)
 # 2003-09-07 fl   Check gs.close status (from Federico Di Gregorio) (0.5)
+# 2014-05-07 e    Handling of EPS with binary preview and fixed resolution resizing
 #
 # Copyright (c) 1997-2003 by Secret Labs AB.
 # Copyright (c) 1995-2003 by Fredrik Lundh
@@ -50,62 +51,94 @@ if sys.platform.startswith('win'):
     else:
         gs_windows_binary = False
 
+def has_ghostscript():
+    if gs_windows_binary:
+        return True
+    if not sys.platform.startswith('win'):
+        import subprocess
+        try:
+            gs = subprocess.Popen(['gs','--version'], stdout=subprocess.PIPE)
+            gs.stdout.read()
+            return True
+        except OSError:
+            # no ghostscript
+            pass
+    return False
+   
+
 def Ghostscript(tile, size, fp, scale=1):
     """Render an image using Ghostscript"""
 
     # Unpack decoder tile
     decoder, tile, offset, data = tile[0]
     length, bbox = data
-
+   
     #Hack to support hi-res rendering
     scale = int(scale) or 1
     orig_size = size
     orig_bbox = bbox
     size = (size[0] * scale, size[1] * scale)
-    bbox = [bbox[0], bbox[1], bbox[2] * scale, bbox[3] * scale]
-    #print("Ghostscript", scale, size, orig_size, bbox, orig_bbox)
+    # resolution is dependend on bbox and size
+    res = ( float((72.0 * size[0]) / (bbox[2]-bbox[0])), float((72.0 * size[1]) / (bbox[3]-bbox[1])) )
+    #print("Ghostscript", scale, size, orig_size, bbox, orig_bbox, res)
 
     import tempfile, os, subprocess
 
-    file = tempfile.mktemp()
+    out_fd, outfile = tempfile.mkstemp()
+    os.close(out_fd)
+    in_fd, infile = tempfile.mkstemp()
+    os.close(in_fd)
+    
+    # ignore length and offset!
+    # ghostscript can read it   
+    # copy whole file to read in ghostscript
+    with open(infile, 'wb') as f:
+        # fetch length of fp
+        fp.seek(0, 2)
+        fsize = fp.tell()
+        # ensure start position
+        # go back
+        fp.seek(0)
+        lengthfile = fsize
+        while lengthfile > 0:
+            s = fp.read(min(lengthfile, 100*1024))
+            if not s:
+                break
+            length -= len(s)
+            f.write(s)
 
     # Build ghostscript command
     command = ["gs",
-               "-q",                    # quite mode
-               "-g%dx%d" % size,        # set output geometry (pixels)
-               "-r%d" % (72*scale),     # set input DPI (dots per inch)
-               "-dNOPAUSE -dSAFER",     # don't pause between pages, safe mode
-               "-sDEVICE=ppmraw",       # ppm driver
-               "-sOutputFile=%s" % file,# output file
+               "-q",                        # quiet mode
+               "-g%dx%d" % size,            # set output geometry (pixels)
+               "-r%fx%f" % res,             # set input DPI (dots per inch)
+               "-dNOPAUSE -dSAFER",         # don't pause between pages, safe mode
+               "-sDEVICE=ppmraw",           # ppm driver
+               "-sOutputFile=%s" % outfile, # output file
+               "-c", "%d %d translate" % (-bbox[0], -bbox[1]),
+                                            # adjust for image origin
+               "-f", infile,                # input file
             ]
-
+    
     if gs_windows_binary is not None:
-        if gs_windows_binary is False:
+        if not gs_windows_binary:
             raise WindowsError('Unable to locate Ghostscript on paths')
         command[0] = gs_windows_binary
 
     # push data through ghostscript
     try:
         gs = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        # adjust for image origin
-        if bbox[0] != 0 or bbox[1] != 0:
-            gs.stdin.write(("%d %d translate\n" % (-bbox[0], -bbox[1])).encode('ascii'))
-        fp.seek(offset)
-        while length > 0:
-            s = fp.read(8192)
-            if not s:
-                break
-            length = length - len(s)
-            gs.stdin.write(s)
         gs.stdin.close()
         status = gs.wait()
         if status:
             raise IOError("gs failed (status %d)" % status)
-        im = Image.core.open_ppm(file)
+        im = Image.core.open_ppm(outfile)
     finally:
-        try: os.unlink(file)
+        try:
+            os.unlink(outfile)
+            os.unlink(infile)
         except: pass
-
+    
     return im
 
 
@@ -123,10 +156,12 @@ class PSFile:
         self.fp.seek(offset, whence)
     def read(self, count):
         return self.fp.read(count).decode('latin-1')
+    def readbinary(self, count):
+        return self.fp.read(count)
     def tell(self):
         pos = self.fp.tell()
         if self.char:
-            pos = pos - 1
+            pos -= 1
         return pos
     def readline(self):
         s = b""
@@ -160,26 +195,34 @@ class EpsImageFile(ImageFile.ImageFile):
 
     def _open(self):
 
-        # FIXME: should check the first 512 bytes to see if this
-        # really is necessary (platform-dependent, though...)
-
         fp = PSFile(self.fp)
 
-        # HEAD
-        s = fp.read(512)
+        # FIX for: Some EPS file not handled correctly / issue #302 
+        # EPS can contain binary data
+        # or start directly with latin coding
+        # read header in both ways to handle both
+        # file types
+        # more info see http://partners.adobe.com/public/developer/en/ps/5002.EPSF_Spec.pdf
+        
+        # for HEAD without binary preview
+        s = fp.read(4)
+        # for HEAD with binary preview
+        fp.seek(0)
+        sb = fp.readbinary(160)
+
         if s[:4] == "%!PS":
-            offset = 0
             fp.seek(0, 2)
             length = fp.tell()
-        elif i32(s) == 0xC6D3D0C5:
-            offset = i32(s[4:])
-            length = i32(s[8:])
-            fp.seek(offset)
+            offset = 0
+        elif i32(sb[0:4]) == 0xC6D3D0C5:
+            offset = i32(sb[4:8])
+            length = i32(sb[8:12])
         else:
             raise SyntaxError("not an EPS file")
 
+        # go to offset - start of "%!PS" 
         fp.seek(offset)
-
+        
         box = None
 
         self.mode = "RGB"
@@ -189,7 +232,7 @@ class EpsImageFile(ImageFile.ImageFile):
         # Load EPS header
 
         s = fp.readline()
-
+        
         while s:
 
             if len(s) > 255:
@@ -320,6 +363,11 @@ class EpsImageFile(ImageFile.ImageFile):
         self.size = self.im.size
         self.tile = []
 
+    def load_seek(self,*args,**kwargs):
+        # we can't incrementally load, so force ImageFile.parser to
+        # use our custom load method by defining this method. 
+        pass
+
 #
 # --------------------------------------------------------------------
 
@@ -350,7 +398,9 @@ def _save(im, fp, filename, eps=1):
             pass
 
     base_fp = fp
-    fp = io.TextIOWrapper(NoCloseStream(fp), encoding='latin-1')
+    fp = NoCloseStream(fp)
+    if sys.version_info[0] > 2:
+        fp = io.TextIOWrapper(fp, encoding='latin-1')
 
     if eps:
         #

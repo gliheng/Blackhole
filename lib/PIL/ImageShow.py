@@ -17,7 +17,7 @@ from __future__ import print_function
 from PIL import Image
 import os, sys
 
-if(sys.version_info >= (3, 3)):
+if sys.version_info >= (3, 3):
     from shlex import quote
 else:
     from pipes import quote
@@ -103,8 +103,9 @@ if sys.platform == "win32":
     class WindowsViewer(Viewer):
         format = "BMP"
         def get_command(self, file, **options):
-            return ("start /wait %s && ping -n 2 127.0.0.1 >NUL "
-                    "&& del /f %s" % (quote(file), quote(file)))
+            return ('start "Pillow" /WAIT "%s" '
+                    '&& ping -n 2 127.0.0.1 >NUL '
+                    '&& del /f "%s"' % (file, file))
 
     register(WindowsViewer)
 
@@ -159,7 +160,7 @@ else:
             # imagemagick's display command instead.
             command = executable = "xv"
             if title:
-                command = command + " -name %s" % quote(title)
+                command += " -name %s" % quote(title)
             return command, executable
 
     if which("xv"):
