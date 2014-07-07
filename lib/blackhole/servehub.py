@@ -63,8 +63,6 @@ class ProxyServe():
         else:
             f_req = urllib.request.Request(url)
 
-        f_req.timeout = 15 # set timeout to avoid zombie threads
-
         # setting proxy also works
         # if ip:
         #     f_req.set_proxy(ip, 'http')
@@ -86,7 +84,8 @@ class ProxyServe():
 
 
         try:
-            f_res = urllib.request.urlopen(f_req)
+            # set timeout to avoid zombie threads
+            f_res = urllib.request.urlopen(f_req, timeout=10)
         except Exception as e:
             if hasattr(e, 'reason'):
                 reason = str(e.reason).encode('utf-8')
