@@ -58,6 +58,10 @@ class Tunnel(threading.Thread):
         atexit.register(self.stop)
 
     def run(self):
+        '''
+        Server failed to allocate tunnel: The tunnel http://amd.mttweb.html5.qq.com is already registered.
+
+        '''
         logger.info('Running command: %s' % self.cmd)
 
         # hide console window on windows
@@ -78,6 +82,7 @@ class Tunnel(threading.Thread):
             line = line.decode('utf-8')
             logger.debug('ngrok: ' + line)
             m = re.search(r'Tunnel established at https?://(.*)\n', line)
+            
             if m:
                 host = m.group(1)
                 self.onMsg('connect', host)

@@ -11,6 +11,7 @@ from tkinter import *
 from tkinter.ttk import *
 
 import qrcode
+from PIL import Image, ImageTk
 
 from blackhole.reghandler import RegHandler
 import blackhole.router as server
@@ -112,6 +113,8 @@ class MainFrame(Frame):
 
     def centerWindowOnScreen(self):
         win = self.winfo_toplevel()
+        win.update_idletasks()
+
         width = win.winfo_width()
         height = win.winfo_height()
         xoffset = (win.winfo_screenwidth()-width)/2
@@ -251,7 +254,9 @@ class NetworkSelector(ToolWindow):
 
 
 class QRCodePanel(ToolWindow):
-
+    '''
+    window that generate qrcode on input
+    '''
     def __init__(self, parent):
         ToolWindow.__init__(self, parent)
         self.geometry('400x400')
@@ -271,7 +276,6 @@ class QRCodePanel(ToolWindow):
         s = self.entry.get()
         img = qrcode.make(s)
 
-        from PIL import Image, ImageTk
         tkimg = ImageTk.PhotoImage(img.resize((300, 300), Image.ANTIALIAS))
 
         self.label = Label(self, image=tkimg, anchor=CENTER)
@@ -279,20 +283,62 @@ class QRCodePanel(ToolWindow):
         self.label.pack(padx=6, pady=6, expand=YES, fill=BOTH)
 
 
+class QRCodeShow(Toplevel):
+
+    def __init__(self, s, x=0, y=0):
+        Toplevel.__init__(self)
+        self.overrideredirect(True)
+
+        img = qrcode.make(s)
+
+        tkimg = ImageTk.PhotoImage(img.resize((300, 300), Image.ANTIALIAS))
+
+        self.label = Label(self, image=tkimg, anchor=CENTER)
+        self.image = tkimg # keep a reference, so that it's not GCed
+        self.label.pack(padx=6, pady=6, expand=YES, fill=BOTH)
+
+        self.setPosition(x, y)
+
+    def setPosition(self, x, y):
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        self.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+        
+    @classmethod
+    def show(cls, s, x, y):
+        if hasattr(cls, 'inst'):
+            cls.hide()
+
+        cls.inst = QRCodeShow(s, x, y)
+
+    @classmethod
+    def hide(cls):
+        if hasattr(cls, 'inst'):
+            cls.inst.destroy()
+
+
 class TunnelPanel(ToolWindow):
 
     tunnel = None
+
+    IDLE = 0
+    CONNECTING = 1
+    CONNECTED = 2
 
     def __init__(self, parent):
         ToolWindow.__init__(self, parent, True)
         self.geometry('200x200')
 
-        self.isConnecting = False
         self.btn = Button(self, text='Connect', command=self.onConnect)
         self.btn.pack(padx=6, pady=6)
+        self.labelFrame = Frame(self)
+        self.labelFrame.pack()
 
-        self.label = Label(self)
+        self.__state = self.IDLE
+        self.__changed = False
         self.activeHosts = set()
+        self.timer = self.master.after(1000, self.refresh)
 
     def run(self):
         hosts = [tunnel['remote'] for tunnel in config.tunnels]
@@ -302,39 +348,89 @@ class TunnelPanel(ToolWindow):
         self.tunnel.start()
 
     def onMsg(self, signal, text):
+        # this method is run in another thread
+        # manipulating the UI is prohibited, since Tkinter is not thread safe
         if signal == 'connect':
             self.activeHosts.add(text)
+            self.__state = self.CONNECTED
+            self.__changed = True
 
-            self.label.config(text=self.getLabel())
+        elif signal == 'disconnect':
+            self.activeHosts.remove(text)
+
+            if not self.activeHosts:
+                self.__state = self.IDLE
+
+            self.__changed = True
+
+    def refresh(self):
+        self.refreshUI()
+        self.timer = self.master.after(1000, self.refresh)
+
+    def clearLabel(self):
+        for label in self.labelFrame.winfo_children():
+            label.pack_forget()
+            label.destroy()
+
+    def refreshUI(self):
+        if not self.__changed:
+            return
+
+        self.clearLabel()
+
+        if self.__state == self.CONNECTING:
+            self.btn.config(text='Connect')
+            label = Label(self.labelFrame, text='Connecting...')
+            label.pack()
+
+        elif self.__state == self.CONNECTED:
             self.btn.config(text='Disconnect')
+            for host in self.activeHosts:
 
-    def getLabel(self):
-        connected = {tunnel['remote']: tunnel['local'] for tunnel in config.tunnels if tunnel['remote'] in self.activeHosts}
-        l = [host + '\n---> ' + domain + '\n' for host, domain in connected.items()]
+                match = {tunnel['remote']: tunnel['local'] for tunnel in config.tunnels if tunnel['remote'] in self.activeHosts}
 
-        return '\n'.join(l)
+                for host, domain in match.items():
+                    s = host + '\n---> ' + domain
+                    # add label
+                    label = Label(self.labelFrame, text=s)
 
+                    def showQRCode(e):
+                        widget = e.widget
+                        x = widget.winfo_rootx() + 10 + widget.winfo_width()
+                        y = widget.winfo_rooty() - 100
+                        QRCodeShow.show(host, x, y)
+
+                    label.bind('<Enter>', showQRCode)
+                    label.bind('<Leave>', lambda e: QRCodeShow.hide())
+                    label.pack()
+
+        elif self.__state == self.IDLE:
+            self.btn.config(text='Connect')
+
+        self.__changed = False
 
     def onConnect(self):
         if not config.tunnels:
             tkinter.messagebox.showinfo('Warning', 'At lease one tunnel should be configured to use')
             return
 
-        if self.isConnecting:
-            self.isConnecting = False
-            self.btn.config(text='Connect')
-            self.label.config(text='')
-            self.label.pack_forget()
+        if self.__state == self.CONNECTING or self.__state == self.CONNECTED:
+            self.__state = self.IDLE
+            self.__changed = True
+            self.refreshUI()
 
             self.tunnel.stop()
         else:
-            self.isConnecting = True
-            self.label.config(text='Connecting...')
-            self.label.pack()
+            self.__state = self.CONNECTING
+            self.__changed = True
+            self.refreshUI()
 
             if not self.tunnel or not self.tunnel.is_alive():
                 self.run()
 
+    def destroy(self):
+        self.master.after_cancel(self.timer)
+        super().destroy()
 
 class ConfigWin(ToolWindow):
     ''' This is the config window
@@ -446,7 +542,7 @@ class LogGrid(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
 
-        self.listgrid = Treeview(self, columns=('Status', 'URL', 'Action'), show = 'headings')
+        self.listgrid = Treeview(self, columns=('Status', 'URL', 'Action'), show='headings')
         self.listgrid.heading('Status', text='Status', command = self.sortColumn)
         self.listgrid.heading('URL', text='URL', command = self.sortColumn)
         self.listgrid.heading('Action', text='Action', command = self.sortColumn)
