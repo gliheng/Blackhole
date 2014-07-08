@@ -1,31 +1,23 @@
 What's this
 ===========
-Font-end development always need techniques for replacing some request from the server, via altenative host or via local file replacement. This project aimed to facilitate all sorts of request replacement/redirection for front-end development, works the same way fiddler does.
+Blackhole is a font-end proxy debugging tool, like fiddler. It intercept http requests, replace them with local alternatives or forward them to their backend server. A variaty of replacement/redirection scheme can be configured to allow for easier front-end development.
 
 Requirements
 ============
+
 - This project is built with python3.3. Other versions are not guaranteed to work.
 - No installation of 3rd part library is needed.
+- Works on both windows and mac
+
 
 TODO
 ====
-typescript support 
-
-Request viewer need a filter system.
-
-Request builder
-
-plug-ins
-  #500
-	#edit (intercept message and modify mechanism)
-	#addfirebug
-	#replace xxx aaa
-
-folder match use beginwith
-
-settings: group name use hostname match
-
-ssl support
+- Buildout system
+- Request/Response viewer
+- Request builder
+- project based configuration
+- Request list need a filter system.
+- ssl support
 
 Features
 ========

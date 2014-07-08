@@ -82,5 +82,7 @@ elif sys.platform == 'darwin':
             if hasattr(cls, 'service'):
                 subprocess.check_call('networksetup -setwebproxystate "%s" off' % cls.service,
                     shell=True)
+else:
+    raise Exception('Unsupported operation system!')
 
 atexit.register(RegHandler.deactivate)

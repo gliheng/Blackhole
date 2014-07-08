@@ -196,9 +196,10 @@ class ToolWindow(Toplevel):
     def __init__(self, parent, preserveState=False):
         self.preserveState = preserveState
         Toplevel.__init__(self, parent)
-        self.transient(parent)
         # self.attributes('-toolwindow', True)
-        # self.lift() # this doesn't seem to work with transitent window
+        # self.transient(parent)
+        # self.lift()
+        self.focus()
 
         self.protocol("WM_DELETE_WINDOW", self.__toggle)
         self.bind('<Escape>', lambda e: self.__toggle())
@@ -288,6 +289,7 @@ class QRCodeShow(Toplevel):
     def __init__(self, parent, s, x=0, y=0):
         Toplevel.__init__(self, parent)
         self.overrideredirect(True)
+        self.lift()
         self.transient(parent)
 
         img = qrcode.make(s)
