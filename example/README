@@ -1,0 +1,13 @@
+This is the example directory, showing some features of this project.
+
+How to use?
+
+1. Run Blackhole.
+2. Press the Capture button.
+3. Open your browser and navigate to http://www.example.com
+
+I don't own the domain Of course. This works since it intercept your http traffic via proxy.
+
+More interesting features are included.
+
+Have fun.

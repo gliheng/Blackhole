@@ -13,6 +13,8 @@ Requirements
 TODO
 ====
 - Buildout system
+- Hostmod utility
+- Elevate promistion on windows
 - Request/Response viewer
 - Request builder
 - project based configuration

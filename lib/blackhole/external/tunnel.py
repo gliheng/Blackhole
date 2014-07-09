@@ -59,7 +59,8 @@ class Tunnel(threading.Thread):
 
     def run(self):
         '''
-        Server failed to allocate tunnel: The tunnel http://amd.mttweb.html5.qq.com is already registered.
+        Tunnel established at [HOST]
+        Server failed to allocate tunnel: The tunnel [HOST] is already registered.
 
         '''
         logger.info('Running command: %s' % self.cmd)
