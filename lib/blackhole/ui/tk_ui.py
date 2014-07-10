@@ -197,9 +197,9 @@ class ToolWindow(Toplevel):
         self.preserveState = preserveState
         Toplevel.__init__(self, parent)
         # self.attributes('-toolwindow', True)
-        # self.transient(parent)
-        # self.lift()
+        self.transient(parent)
         self.focus()
+        # self.lift()
 
         self.protocol("WM_DELETE_WINDOW", self.__toggle)
         self.bind('<Escape>', lambda e: self.__toggle())

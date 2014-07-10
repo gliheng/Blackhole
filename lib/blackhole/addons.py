@@ -50,20 +50,34 @@ class edit():
 class transform():
     builtins = {
         'tunnel_fixcookie': '''
-            # change domain of Set-Cookie header,
-            # preserve leading dot
-            headers = response[1]
-            if not headers or 'blackhole.orig_host' not in request:
-                ret(response)
+# change domain of Set-Cookie header,
+# preserve leading dot
+headers = response[1]
+if not headers or 'blackhole.orig_host' not in request:
+    pass
+else:
+    repl = r'\1' + request['blackhole.orig_host'] + ';'
+    for header in headers:
+        if header[0] == 'Set-Cookie':
+            # header[1] = re.sub(r'domain=([^;]*);', repl, header[1])
+            header[1] = re.sub(r'(domain=\.?)([^;]*);', repl, header[1])
 
-            repl = r'\1' + request['blackhole.orig_host'] + ';'
-            for header in headers:
-                if header[0] == 'Set-Cookie':
-                    # header[1] = re.sub(r'domain=([^;]*);', repl, header[1])
-                    header[1] = re.sub(r'(domain=\.?)([^;]*);', repl, header[1])
+        ''',
 
-            ret(response)
-        '''
+#         'weinre': '''
+# headers = response[1]
+# 
+# is_html = False
+# for header in headers:
+#     if header[0] == 'Content-Type' and header[1] == 'text/html':
+#         is_html = True
+# 
+# if is_html:
+#     html = response[2]
+#     idx = html.rfind(b'</body>')
+#     response[2] = html[:idx] + b'<script src="http://weinre.qq.com/target/target-script-min.js#anonymous"></script>' + html[idx:]
+# 
+#         '''
     }
 
     def __init__(self, request, response):
@@ -78,19 +92,12 @@ class transform():
     def post_edit(self, fname):
         ''' This method is called after request '''
 
+        params = {
+            'request': self.request,
+            'response': self.response
+        }
+
         try:
-            
-            response = self.response
-            def ret(_response):
-                nonlocal response
-                response = _response
-
-            params = {
-                'request': self.request,
-                'response': self.response,
-                'ret': ret
-            }
-
             if fname in self.builtins:
                 # check builtin modules first
                 s = self.builtins[fname]
@@ -107,8 +114,7 @@ class transform():
         except:
             pass
 
-
-        return response
+        return self.response
         # # make subprocess use utf-8 encoding for stdin
         # env = os.environ.copy()
         # env['PYTHONIOENCODING'] = 'utf-8'
