@@ -16,6 +16,7 @@ import blackhole.utils as utils
 from blackhole.servehub import FileServe, ProxyServe, ConcatServe, QZServe, SpecialServe
 import blackhole.addons as addons
 
+
 class Router():
 
     ip_re = re.compile(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\:\d+)?$')
@@ -205,19 +206,18 @@ class Router():
         if hasgzip:
             body = response[2] = gzip.GzipFile(fileobj=BytesIO(body)).read()
 
-        for addon_line in addons:
-            if ':' in addon_line:
-                addon, arg = addon_line.split(':', maxsplit=1)
-            else:
-                addon = addon_line
-                arg = None
-            if addon in self.addons:
-                logger.info('Processing addon: %s' % addon)
-                # if addon return empty value, it is ignored
-                klass = self.addons[addon]
+        for addon in addons:
+            logger.info('Processing addon: %s' % addon)
 
-                ret = klass(request, response).post_edit(arg)
-                if ret: response = ret
+            if addon.endswith('.py'):
+                klass = self.addons['execfile']
+                ret = klass(request, response).post_edit(addon)
+            else:
+                klass = self.addons[addon]
+                ret = klass(request, response).post_edit()
+
+            # if addon return empty value, it is ignored
+            if ret: response = ret
 
         # make it iterable again
         response[2] = [response[2]]

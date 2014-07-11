@@ -12,6 +12,6 @@ define(function (require, exports, module){
 
 	// var $ = require('jquery');
 	// $('html,body').css('background-color', 'silver');
-	require('./merge.min');
-	require('./merge2.min');
+	require('./concat.min');
+	require('./concat2.min');
 });

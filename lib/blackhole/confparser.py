@@ -13,8 +13,10 @@ class Configuration():
     def __init__(self, config_file):
 
         try:
+            self.config_file = config_file
             config = configparser.ConfigParser({'enabled': 'True'})
             config.read(config_file)
+            self._config = config
 
             self.localOnly = eval(config.defaults().get('localhost_only', 'True'))
             self.sep = eval('"' + config.defaults().get('seperator', '\\t') + '"')
@@ -71,9 +73,18 @@ class Configuration():
                     continue
                 self.rules.append(line.split(self.sep))
 
-def getConfig(config_file):
-    config = Configuration(config_file)
-    config.version = __version__
-    config.config_file = config_file
+    def getAddonConfig(self, addon, key):
+        key = addon + '.' + key
+        return self._config.defaults().get(key, '')
 
-    return config
+# caching
+def getConfig(config_file=None):
+    global _config
+
+    if not config_file and _config:
+        return _config
+    else:
+        _config = Configuration(config_file)
+        _config.version = __version__
+
+    return _config

@@ -8,6 +8,9 @@ import locale
 import importlib
 from io import BytesIO
 
+from blackhole.confparser import getConfig
+
+
 TEMP_DIR = os.path.join(tempfile.gettempdir(), 'blackhole')
 
 class edit():
@@ -20,10 +23,10 @@ class edit():
         self.headers = response[1]
         self.body = response[2]
 
-    def pre_edit(self, args):
+    def pre_edit(self):
         ''' This method is called before request '''
 
-    def post_edit(self, args):
+    def post_edit(self):
         ''' This method is called after request '''
 
         try:
@@ -47,44 +50,64 @@ class edit():
 
         return [self.status, self.headers, new_data]
 
-class transform():
-    builtins = {
-        'tunnel_fixcookie': r'''
-# change domain of Set-Cookie header,
-# preserve leading dot
-import re
-headers = response[1]
-if not headers or 'blackhole.orig_host' not in request:
-    pass
-else:
-    repl = r'\1' + request['blackhole.orig_host'] + ';'
-    for header in headers:
-        if header[0] == 'Set-Cookie':
-            header[1] = re.sub(r'(domain=\.?)([^;]*);', repl, header[1])
-        ''',
-
-#         'weinre': '''
-# headers = response[1]
-# 
-# is_html = False
-# for header in headers:
-#     if header[0] == 'Content-Type' and header[1] == 'text/html':
-#         is_html = True
-# 
-# if is_html:
-#     html = response[2]
-#     idx = html.rfind(b'</body>')
-#     response[2] = html[:idx] + b'<script src="http://weinre.qq.com/target/target-script-min.js#anonymous"></script>' + html[idx:]
-# 
-#         '''
-    }
+class fixcookie():
+    '''
+    change domain of Set-Cookie header,
+    preserve leading dot
+    '''
 
     def __init__(self, request, response):
         self.request = request
         self.response = response
         self.body = response[2]
 
-    def pre_edit(self, args):
+    def post_edit(self):
+        headers = self.response[1]
+        if not headers or 'blackhole.orig_host' not in self.request:
+            pass
+        else:
+            repl = r'\1' + self.request['blackhole.orig_host'] + ';'
+            for header in headers:
+                if header[0] == 'Set-Cookie':
+                    header[1] = re.sub(r'(domain=\.?)([^;]*);', repl, header[1])
+
+        return self.response
+
+
+class weinre():
+
+    def __init__(self, request, response):
+        self.request = request
+        self.response = response
+        self.body = response[2]
+
+    def post_edit(self):
+        headers = self.response[1]
+        
+        is_html = False
+        for header in headers:
+            if header[0] == 'Content-Type' and header[1] == 'text/html':
+                is_html = True
+                break
+        
+        if is_html:
+            html = self.body
+            jsfile = self.get_config('jsfile')
+            idx = html.rfind(b'</body>')
+            self.response[2] = html[:idx] + b'<script src="' + jsfile.encode() + b'"></script>' + html[idx:]
+            return self.response
+
+    def get_config(self, key):
+        return getConfig().getAddonConfig('weinre', key)
+
+class execfile():
+
+    def __init__(self, request, response):
+        self.request = request
+        self.response = response
+        self.body = response[2]
+
+    def pre_edit(self, fname):
         ''' This method is called before request '''
         return self.response
 
@@ -97,12 +120,7 @@ else:
         }
 
         try:
-            if fname in self.builtins:
-                # check builtin modules first
-                s = self.builtins[fname]
-            else:
-                s = open(fname + '.py').read()
-
+            s = open(fname).read()
             exec(s, params)
 
             # mod = importlib.__import__(fname)
