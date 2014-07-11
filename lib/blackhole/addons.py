@@ -49,9 +49,10 @@ class edit():
 
 class transform():
     builtins = {
-        'tunnel_fixcookie': '''
+        'tunnel_fixcookie': r'''
 # change domain of Set-Cookie header,
 # preserve leading dot
+import re
 headers = response[1]
 if not headers or 'blackhole.orig_host' not in request:
     pass
@@ -59,9 +60,7 @@ else:
     repl = r'\1' + request['blackhole.orig_host'] + ';'
     for header in headers:
         if header[0] == 'Set-Cookie':
-            # header[1] = re.sub(r'domain=([^;]*);', repl, header[1])
             header[1] = re.sub(r'(domain=\.?)([^;]*);', repl, header[1])
-
         ''',
 
 #         'weinre': '''

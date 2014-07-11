@@ -398,7 +398,7 @@ class TunnelPanel(ToolWindow):
 
                 def showQRCode(e):
                     widget = e.widget
-                    x = widget.winfo_rootx() + 10 + widget.winfo_width()
+                    x = widget.winfo_rootx() + 15 + widget.winfo_width()
                     y = widget.winfo_rooty() - 100
                     QRCodeShow.show(self, host, x, y)
 
