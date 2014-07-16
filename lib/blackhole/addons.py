@@ -94,7 +94,8 @@ class weinre():
             html = self.body
             jsfile = self.get_config('jsfile')
             idx = html.rfind(b'</body>')
-            self.response[2] = html[:idx] + b'<script src="' + jsfile.encode() + b'"></script>' + html[idx:]
+            if idx != -1:
+                self.response[2] = html[:idx] + b'<script src="' + jsfile.encode() + b'"></script>' + html[idx:]
             return self.response
 
     def get_config(self, key):
