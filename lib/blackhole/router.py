@@ -199,7 +199,7 @@ class Router():
         '''
         headers = response[1]
         # iterable was changed to bytes here
-        body = response[2] = b''.join(response[2])
+        body = response[2] = b''.join(response[2]).decode('utf-8')
 
         # decompress
         hasgzip = any(header[0] == 'Content-Encoding' and 'gzip' in header[1] for header in headers)
@@ -220,7 +220,7 @@ class Router():
             if ret: response = ret
 
         # make it iterable again
-        response[2] = [response[2]]
+        response[2] = [response[2].encode('utf-8')]
 
         # fix headers
         # fix content-length

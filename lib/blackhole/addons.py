@@ -93,9 +93,9 @@ class weinre():
         if is_html:
             html = self.body
             jsfile = self.get_config('jsfile')
-            idx = html.rfind(b'</body>')
+            idx = html.rfind('</body>')
             if idx != -1:
-                self.response[2] = html[:idx] + b'<script src="' + jsfile.encode() + b'"></script>' + html[idx:]
+                self.response[2] = html[:idx] + '<script src="' + jsfile + '"></script>' + html[idx:]
             return self.response
 
     def get_config(self, key):
@@ -121,7 +121,7 @@ class execfile():
         }
 
         try:
-            s = open(fname).read()
+            s = open(fname, encoding='utf-8').read()
             exec(s, params)
 
             # mod = importlib.__import__(fname)
