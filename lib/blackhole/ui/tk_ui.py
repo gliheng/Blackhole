@@ -396,13 +396,7 @@ class TunnelPanel(ToolWindow):
                 # add label
                 label = Label(self.labelFrame, text=s)
 
-                def showQRCode(e):
-                    widget = e.widget
-                    x = widget.winfo_rootx() + 15 + widget.winfo_width()
-                    y = widget.winfo_rooty() - 100
-                    QRCodeShow.show(self, host, x, y)
-
-                label.bind('<Enter>', showQRCode)
+                label.bind('<Enter>', lambda e, host=host: self.showQRCode(e, host))
                 label.bind('<Leave>', lambda e: QRCodeShow.hide())
                 label.pack()
 
@@ -410,6 +404,12 @@ class TunnelPanel(ToolWindow):
             self.btn.config(text='Connect')
 
         self.__changed = False
+
+    def showQRCode(self, e, host):
+        widget = e.widget
+        x = widget.winfo_rootx() + 15 + widget.winfo_width()
+        y = widget.winfo_rooty() - 100
+        QRCodeShow.show(self, host, x, y)
 
     def onConnect(self):
         if not config.tunnels:
