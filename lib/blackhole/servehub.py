@@ -98,7 +98,7 @@ class ProxyServe():
             headers = []
             headers.append(['Content-Type', 'text/plain'])
             headers.append(['Content-Length', str(len(reason))])
-            return ('200 OK', headers, [reason])
+            return ['200 OK', headers, [reason]]
 
         # forward headers
         headers = []
@@ -149,7 +149,7 @@ class SpecialServe():
     def serve(cls, url, rule, environ = {}):
         if rule.startswith('*redir:'):
             loc = rule.lstrip('*redir:')
-            return ['302 Found', [('Location', loc)], []]
+            return ['302 Found', [['Location', loc]], []]
 
         elif re.match(r'\*(\d+):(\w+)', rule):
             m = re.search(r'\*(\d+):(\w+)', rule).groups()

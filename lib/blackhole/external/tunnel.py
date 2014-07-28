@@ -81,7 +81,7 @@ class Tunnel(threading.Thread):
 
         for line in self.proc.stdout:
             line = line.decode('utf-8')
-            logger.debug('ngrok: ' + line)
+            # logger.debug('ngrok: ' + line)
             m = re.search(r'Tunnel established at https?://(.*)\n', line)
             
             if m:

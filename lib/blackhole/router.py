@@ -20,13 +20,13 @@ import blackhole.addons as addons
 class Router():
 
     ip_re = re.compile(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(\:\d+)?$')
-    idx = 0 # keep request index
 
     def __init__(self):
 
         self.reset_config()
         self.onRequest = utils.Event()
         self.onResponse = utils.Event()
+        self.idx = 0 # keep request index
 
     def reset_config(self):
 
@@ -99,79 +99,18 @@ class Router():
         url = utils.get_absolute_url(environ)
         logger.info('Incoming request: %s' % url)
         
-        # add count
-        cls = self.__class__
-        idx = cls.idx = cls.idx + 1
+        # increase count
+        idx = self.idx = self.idx + 1
 
         res = None
-        match = False
+        match = None
         for route in self.routes:
-            m = re.match(route['url'], url)
+            match = re.match(route['url'], url)
 
-            if not m: continue
+            if match:
+                break
 
-            # url matched the current rule
-
-            # if 'addons' in route:
-            #     res = self.preOperations(route['addons'].split('|'), environ = environ)
-
-            # if not res:
-
-            spec_type = route['type']
-            spec = route['spec']
-
-            logger.info('{} match detected: {}'.format(spec_type, spec))
-            self.onRequest({'idx': idx, 'type': spec_type, 'url': url, 'action': spec})
-
-            if spec_type == 'file':
-                res = FileServe.serve(spec, environ = environ)
-
-            elif spec_type == 'dir':
-                path = urlparse(url).path[1:]
-
-                # remainder is the part that is not matched
-                remainder = url2pathname(urlparse(url[m.end():]).path) or 'index.html'
-                # remove leading /, since os.path.join must not begin with /
-                if remainder.startswith('/') or remainder.startswith('\\') :
-                    remainder = remainder[1:]
-
-                file_path = os.path.join(spec, remainder)
-                res = FileServe.serve(file_path, environ = environ)
-
-            elif spec_type == 'ip':
-                res = ProxyServe.serve(url, ip = spec, environ = environ)
-
-            elif spec_type == 'concat':
-                file_name = os.path.basename(urlparse(url).path)
-                file_path = os.path.join(os.path.dirname(spec), file_name)
-
-                if spec.endswith('.cfg'):
-                    res = ConcatServe.serve(file_path, spec, environ = environ)
-                elif spec.endswith('.qzmin'):
-                    res = QZServe.serve(file_path, spec, environ = environ)
-
-            elif spec_type == 'special':
-                res = SpecialServe.serve(url, spec, environ = environ)
-
-            elif spec_type == 'default':
-                res = ProxyServe.serve(url, environ = environ)
-
-            # make a 404 response if no res is returned
-            if not res:
-                res = ['404 NOT FOUND', [], [b'']]
-
-            match = True
-            break
-
-        # no match was found, serve the request as is
-        if not match:
-            logger.info('no match detected')
-            self.onRequest({'idx':idx, 'type':'default', 'url': url, 'action': ''})
-
-            res = ProxyServe.serve(url, environ = environ)
-
-
-        # call addon methods after response
+        # generate addon list
         addons = []
 
         if match and 'addons' in route:
@@ -180,8 +119,30 @@ class Router():
         if tunneling and 'addons' in tunnel:
             addons += tunnel['addons'].split('|')
 
-        if len(addons) > 0:
-            res = self.postOperations(addons, request = environ, response = res)
+        # call addon methods after request
+        if addons:
+            self.preOperations(addons, request=environ)
+
+        if match:
+            spec_type = route['type']
+            spec = route['spec']
+
+            logger.info('{} match detected: {}'.format(spec_type, spec))
+            self.onRequest({'idx': idx, 'type': spec_type, 'url': url, 'action': spec})
+        else:
+            spec_type = 'default'
+            spec = ''
+
+            # no match was found, serve the request as is
+            logger.info('No match detected')
+            self.onRequest({'idx': idx, 'type':'default', 'url': url, 'action': ''})
+
+        res = self.makeRequest(url, match, environ, spec_type, spec)
+
+
+        # call addon methods after response
+        if addons:
+            self.postOperations(addons, request=environ, response=res)
 
 
         self.onResponse({'idx': idx, 'status': res[0]})
@@ -189,35 +150,89 @@ class Router():
         start_response(res[0], res[1] or [])
         return res[2] or []
 
+    def makeRequest(self, url, match, environ, spec_type, spec):
+
+        if spec_type == 'file':
+            res = FileServe.serve(spec, environ=environ)
+
+        elif spec_type == 'dir':
+            path = urlparse(url).path[1:]
+
+            # remainder is the part that is not matched
+            remainder = url2pathname(urlparse(url[match.end():]).path) or 'index.html'
+            # remove leading /, since os.path.join must not begin with /
+            if remainder.startswith('/') or remainder.startswith('\\') :
+                remainder = remainder[1:]
+
+            file_path = os.path.join(spec, remainder)
+            res = FileServe.serve(file_path, environ=environ)
+
+        elif spec_type == 'ip':
+            res = ProxyServe.serve(url, ip = spec, environ=environ)
+
+        elif spec_type == 'concat':
+            file_name = os.path.basename(urlparse(url).path)
+            file_path = os.path.join(os.path.dirname(spec), file_name)
+
+            if spec.endswith('.cfg'):
+                res = ConcatServe.serve(file_path, spec, environ=environ)
+            elif spec.endswith('.qzmin'):
+                res = QZServe.serve(file_path, spec, environ=environ)
+
+        elif spec_type == 'special':
+            res = SpecialServe.serve(url, spec, environ=environ)
+
+        else:
+            res = ProxyServe.serve(url, environ=environ)
+
+        # make a 404 response if no res is returned
+        if not res:
+            res = ['404 NOT FOUND', [], [b'']]
+
+        return res
+
     def preOperations(self, addons, request):
         ''' Pre processing before response is received
         '''
-        pass
+        for addon in addons:
+            logger.info('Pre processing with addon: %s' % addon)
+
+            if addon.endswith('.py'):
+                klass = self.addons['execfile']
+                addonObj = klass(request, None, addon)
+            else:
+                klass = self.addons[addon]
+                addonObj = klass(request, None)
+
+            if hasattr(addonObj, 'pre_edit'):
+                addonObj.pre_edit()
       
     def postOperations(self, addons, request, response):
         ''' Post processing when response is received
         '''
         headers = response[1]
         # iterable was changed to bytes here
-        body = response[2] = b''.join(response[2]).decode('utf-8')
+        body = b''.join(response[2])
 
         # decompress
         hasgzip = any(header[0] == 'Content-Encoding' and 'gzip' in header[1] for header in headers)
         if hasgzip:
             body = response[2] = gzip.GzipFile(fileobj=BytesIO(body)).read()
 
+        response[2] = body.decode('utf-8')
+
         for addon in addons:
-            logger.info('Processing addon: %s' % addon)
+            logger.info('Post processing with addon: %s' % addon)
 
             if addon.endswith('.py'):
                 klass = self.addons['execfile']
-                ret = klass(request, response).post_edit(addon)
+                addonObj = klass(request, response, addon)
             else:
                 klass = self.addons[addon]
-                ret = klass(request, response).post_edit()
+                addonObj = klass(request, response)
 
-            # if addon return empty value, it is ignored
-            if ret: response = ret
+            if hasattr(addonObj, 'post_edit'):
+                addonObj.post_edit()
 
         # make it iterable again
         response[2] = [response[2].encode('utf-8')]
@@ -236,7 +251,7 @@ class Router():
             if not key == 'Content-Encoding':
                 new_headers.append(header)
 
-        return [response[0], new_headers, response[2]]
+        response[1] = new_headers
 
 app = Router()
 server = None

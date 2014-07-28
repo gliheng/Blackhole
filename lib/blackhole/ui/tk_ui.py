@@ -310,15 +310,14 @@ class QRCodeShow(Toplevel):
         
     @classmethod
     def show(cls, parent, s, x, y):
-        if hasattr(cls, 'inst'):
-            cls.hide()
-
-        cls.inst = QRCodeShow(parent, s, x, y)
+        if not hasattr(cls, 'inst'):
+            cls.inst = QRCodeShow(parent, s, x, y)
 
     @classmethod
     def hide(cls):
         if hasattr(cls, 'inst'):
             cls.inst.destroy()
+            del cls.inst
 
 
 class TunnelPanel(ToolWindow):
@@ -394,7 +393,7 @@ class TunnelPanel(ToolWindow):
             for host, domain in match.items():
                 s = host + '\n---> ' + domain
                 # add label
-                label = Label(self.labelFrame, text=s)
+                label = Label(self.labelFrame, text=s, justify=CENTER)
 
                 label.bind('<Enter>', lambda e, host=host: self.showQRCode(e, host))
                 label.bind('<Leave>', lambda e: QRCodeShow.hide())
