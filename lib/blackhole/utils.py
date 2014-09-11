@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 import subprocess
 import wsgiref.util
@@ -117,3 +118,11 @@ def change_host(environ, host):
     environ['HTTP_HOST'] = host
     uri = wsgiref.util.request_uri(environ)
     environ['REQUEST_URI'] = uri.encode('utf-8', errors='ignore')
+
+def content_type(headers = []):
+    for pair in headers:
+        if pair[0] == 'Content-Type':
+            m = re.match(r'([\w|/]+)(?=;\s+charset=(\w+))?', pair[1])
+            return m.groups()
+
+    return [None, None]

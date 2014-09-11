@@ -219,7 +219,12 @@ class Router():
         if hasgzip:
             body = response[2] = gzip.GzipFile(fileobj=BytesIO(body)).read()
 
-        response[2] = body.decode('utf-8')
+        # try to get contenttype and encoding from headers
+        type, coding = utils.content_type(headers)
+        coding = coding or 'utf-8'
+
+        if type == 'text/html':
+            response[2] = body.decode(coding, errors='ignore')
 
         for addon in addons:
             logger.info('Post processing with addon: %s' % addon)
@@ -235,7 +240,8 @@ class Router():
                 addonObj.post_edit()
 
         # make it iterable again
-        response[2] = [response[2].encode('utf-8')]
+        if type == 'text/html':
+            response[2] = [response[2].encode(coding, errors='ignore')]
 
         # fix headers
         # fix content-length
