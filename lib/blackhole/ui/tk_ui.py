@@ -12,16 +12,7 @@ from tkinter.ttk import *
 
 import qrcode
 
-# TODO
-# this could be done better
-if sys.platform == 'win32':
-    import platform
-    if platform.architecture()[0] == '64bit':
-        from PIL_amd64 import Image, ImageTk
-    else:
-        from PIL_win32 import Image, ImageTk
-elif sys.platform == 'darwin':
-    from PIL_mac import Image, ImageTk
+from PIL import Image, ImageTk
 
 from blackhole.reghandler import RegHandler
 import blackhole.router as server
