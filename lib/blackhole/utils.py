@@ -126,3 +126,10 @@ def content_type(headers = []):
             return m.groups()
 
     return [None, None]
+
+def get_content_length(iterable):
+    length = 0
+    for item in iterable:
+        length += len(item)
+
+    return length

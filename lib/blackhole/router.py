@@ -211,20 +211,22 @@ class Router():
         ''' Post processing when response is received
         '''
         headers = response[1]
-        # iterable was changed to bytes here
+        # iterable is changed to bytes here
         body = b''.join(response[2])
 
         # decompress
         hasgzip = any(header[0] == 'Content-Encoding' and 'gzip' in header[1] for header in headers)
         if hasgzip:
-            body = response[2] = gzip.GzipFile(fileobj=BytesIO(body)).read()
+            body = gzip.GzipFile(fileobj=BytesIO(body)).read()
 
         # try to get contenttype and encoding from headers
         type, coding = utils.content_type(headers)
         coding = coding or 'utf-8'
 
         if type == 'text/html':
-            response[2] = body.decode(coding, errors='ignore')
+            body = body.decode(coding, errors='ignore')
+
+        response[2] = body
 
         for addon in addons:
             logger.info('Post processing with addon: %s' % addon)
@@ -239,21 +241,19 @@ class Router():
             if hasattr(addonObj, 'post_edit'):
                 addonObj.post_edit()
 
-        # make it iterable again
         if type == 'text/html':
-            response[2] = [response[2].encode(coding, errors='ignore')]
+            response[2] = response[2].encode(coding, errors='ignore')
+
+        # body is made iterable again
+        response[2] = [response[2]]
 
         # fix headers
-        # fix content-length
-        length = 0
-        for item in response[2]:
-            length += len(item)
-
         new_headers = []
         for header in headers:
             key = header[0]
             if key == 'Content-Length':
-                header[1] = str(length)
+                # fix content-length
+                header[1] = str(utils.get_content_length(response[2]))
             if not key == 'Content-Encoding':
                 new_headers.append(header)
 
