@@ -21,13 +21,16 @@ else:
     CONFIG_FILE = 'config.ini'
     sys.argv.append(CONFIG_FILE)
 
-# on mac, __file__ return the file name only
+
 config_path = os.path.join(os.getcwd(), CONFIG_FILE)
 config_dir = os.path.dirname(config_path)
-app_dir = os.path.abspath(os.path.dirname(__file__) or '.')
 
-sys.path.insert(0, os.path.join(app_dir, 'lib'))
-os.chdir(config_dir)
+if hasattr(sys, 'frozen'):
+    app_dir = sys.executable
+else:
+    app_dir = os.path.abspath(os.path.dirname(__file__) or '.')
+    sys.path.insert(0, os.path.join(app_dir, 'lib'))
+    os.chdir(config_dir)
 
 from blackhole.confparser import getConfig
 import blackhole.router as router
