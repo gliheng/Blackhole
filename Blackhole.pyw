@@ -10,10 +10,11 @@
 
 import os
 import sys
+
 import logging
-# rotateLogger = RotatingFileHandler('data/log/log.txt', maxBytes=100*1024*1024, backupCount=3)
-# logging.basicConfig(level = logging.DEBUG, handlers=(rotateLogger,))
-logging.basicConfig(level = logging.DEBUG)
+import logging.handlers
+rotateLogger = logging.handlers.RotatingFileHandler('data/log/log.txt', maxBytes=100*1024*1024, backupCount=3)
+logging.basicConfig(level = logging.DEBUG, handlers=(rotateLogger,))
 
 if len(sys.argv) > 1:
     CONFIG_FILE = sys.argv[1]
