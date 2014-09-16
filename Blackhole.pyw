@@ -26,21 +26,8 @@ config_path = os.path.join(os.getcwd(), CONFIG_FILE)
 config_dir = os.path.dirname(config_path)
 app_dir = os.path.abspath(os.path.dirname(__file__) or '.')
 
-os.chdir(config_dir)
-
 sys.path.insert(0, os.path.join(app_dir, 'lib'))
-
-# setting python egg version
-import platform
-if sys.platform == 'win32':
-    if platform.architecture()[0] == '32bit':
-        plat = 'win32'
-    elif platform.architecture()[0] == '64bit':
-        plat = 'win-amd64'
-    version_info = sys.version_info
-
-    pil_egg = 'lib/Pillow-2.5.3-py{}.{}-{}.egg'.format(version_info.major, version_info.minor, plat)
-    sys.path.insert(0, os.path.join(app_dir, pil_egg))
+os.chdir(config_dir)
 
 from blackhole.confparser import getConfig
 import blackhole.router as router
