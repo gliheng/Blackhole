@@ -19,13 +19,18 @@ bdist_msi_options = {
     'upgrade_code': '{96a85bac-52af-4018-0e94-3afcc9e1ad0c}'
 }
 
+bdist_mac_options = {
+    'iconfile': 'icon.ico',
+}
+
 setup(
     name = 'Blackhole',
     version = '0.2',
     description = 'Elite web proxy debugger',
     options = {
         'build_exe' : build_exe_options,
-        'build_msi' : bdist_msi_options
+        'build_msi' : bdist_msi_options,
+        'build_mac' : bdist_mac_options
     },
     executables = [Executable(
         'Blackhole.pyw',

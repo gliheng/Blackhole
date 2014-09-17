@@ -12,9 +12,7 @@ Requirements
 
 TODO
 ====
-- Buildout system
 - Hostmod utility
-- Elevate promistion on windows
 - Request/Response viewer
 - Request builder
 - project based configuration
@@ -32,6 +30,7 @@ redirect ip support port	DONE
 dir match default to index.html if no remainder exist	DONE
 UI use Listbox instead of ScrolledText	DONE
 Quit does not quit server	DONE
+Packaged on windows         DONE
 
 
 Settings

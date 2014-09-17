@@ -428,7 +428,9 @@ class ConfigWin(ToolWindow):
         topPanel.pack(expand=YES, fill=BOTH)
 
         self.edit = Text(topPanel, undo=True)
-        self.edit.configure(font='consolas 10')
+        if sys.platform == 'win32':
+            self.edit.configure(font='consolas 10')
+
         self.edit.pack(side=LEFT, expand=YES, fill=BOTH)
 
         scroll = Scrollbar(topPanel, orient=VERTICAL, command=self.edit.yview)
