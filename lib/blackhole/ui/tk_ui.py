@@ -16,10 +16,11 @@ from PIL import Image, ImageTk
 
 from blackhole.reghandler import RegHandler
 import blackhole.router as server
-from blackhole.confparser import getConfig
+from blackhole.confparser import get_config
 from blackhole.utils import get_res
 
 from ..external import tunnel
+from ..external import tools
 
 
 class MainFrame(Frame):
@@ -161,31 +162,12 @@ class MainFrame(Frame):
     def clearCache(self):
         ''' clearCache
         '''
-        # This does not work well
-        # subprocess.Popen('rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 8')
-        cmd = get_res('data/bin/CleanIETempFiles.exe') + ' -t -q'
-        logger.info('Starting proc: %s' % cmd)
-
-        if sys.platform == 'win32':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        else:
-            startupinfo = None
-
-        subprocess.Popen(cmd, startupinfo=startupinfo)
+        tools.clear_IE_cache()
 
     def clearCookie(self):
         ''' clearCookie
         '''
-        cmd = 'rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 2'
-        logger.info('Starting proc: %s' % cmd)
-
-        if sys.platform == 'win32':
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        else:
-            startupinfo = None
-        subprocess.Popen(cmd, startupinfo=startupinfo)
+        tools.clear_IE_cookie()
 
     def qrcode(self):
         QRCodePanel.toggle()
@@ -529,7 +511,7 @@ class ConfigWin(ToolWindow):
         self.after(2000, lambda: self.tip.config(text=''))
 
         global config
-        config = getConfig(config.config_file)
+        config = get_config(config.config_file)
         server.reload(config)
 
 

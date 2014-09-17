@@ -72,19 +72,26 @@ class Tunnel(threading.Thread):
         if sys.platform == 'win32':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
         else:
             startupinfo = None
 
-        self.proc = subprocess.Popen(self.cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                shell=self.shell,
-                startupinfo=startupinfo,
-                bufsize=0)
+        try:
+            self.proc = subprocess.Popen(self.cmd,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    shell=self.shell,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo,
+                    bufsize=0)
+        except Exception as e:
+            logger.error('Popen Exception: ' + e.__class__.__name__)
+            return
 
         for line in self.proc.stdout:
             line = line.decode('utf-8')
-            # logger.debug('ngrok: ' + line)
+            logger.debug('ngrok: ' + line)
             m = re.search(r'Tunnel established at https?://(.*)\n', line)
             
             if m:

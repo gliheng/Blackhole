@@ -78,7 +78,7 @@ class Configuration():
         return self._config.defaults().get(key, '')
 
 # caching
-def getConfig(config_file=None):
+def get_config(config_file=None):
     global _config
 
     if not config_file and _config:

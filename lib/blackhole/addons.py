@@ -8,7 +8,7 @@ import locale
 import importlib
 from io import BytesIO
 
-from blackhole.confparser import getConfig
+from blackhole.confparser import get_config
 
 
 TEMP_DIR = os.path.join(tempfile.gettempdir(), 'blackhole')
@@ -119,7 +119,7 @@ class weinre():
                 self.response[2] = html[:idx] + '<script src="' + jsfile + '"></script>' + html[idx:]
 
     def get_config(self, key):
-        return getConfig().getAddonConfig('weinre', key)
+        return get_config().getAddonConfig('weinre', key)
 
 class execfile():
 

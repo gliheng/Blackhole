@@ -3,7 +3,7 @@ import logging
 import subprocess
 import atexit
 
-from blackhole.confparser import getConfig
+from blackhole.confparser import get_config
 from blackhole.utils import get_res
 
 if sys.platform == 'win32':

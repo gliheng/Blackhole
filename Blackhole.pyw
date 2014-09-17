@@ -44,10 +44,10 @@ if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG, handlers=(rotateLogger,))
 
     ### startup app ###
-    from blackhole.confparser import getConfig
+    from blackhole.confparser import get_config
     import blackhole.router as router
     import blackhole.ui.tk_ui as ui
 
-    config = getConfig(config_file)
+    config = get_config(config_file)
     router.run(config)
     ui.init(config)
