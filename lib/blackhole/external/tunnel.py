@@ -8,10 +8,11 @@ from string import Template
 import atexit
 
 from ..utils import Event
-
+from ..utils import get_res
 
 import logging
 logger = logging.getLogger(__name__)
+
 
 config_tmpl = Template('''
 server_addr: ${server}
@@ -26,6 +27,8 @@ item_tmpl = Template('''
 ''')
 
 class Tunnel(threading.Thread):
+    ngrok_app = get_res('./data/bin/ngrok.exe')
+
     def __init__(self, port, hosts=[], server='ngrok.com:4443'):
 
         threading.Thread.__init__(self, daemon=True)
@@ -46,7 +49,7 @@ class Tunnel(threading.Thread):
 
         if sys.platform == 'win32':
             self.shell = False
-            cmd = './data/bin/ngrok.exe -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))
+            cmd = '{} -config="{}" -log="stdout" start {}'.format(self.ngrok_app, fil.name, ' '.join(services))
         else:
             self.shell = True
             cmd = 'ngrok -config="{}" -log="stdout" start {}'.format(fil.name, ' '.join(services))

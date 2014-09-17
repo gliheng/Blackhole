@@ -17,6 +17,7 @@ from PIL import Image, ImageTk
 from blackhole.reghandler import RegHandler
 import blackhole.router as server
 from blackhole.confparser import getConfig
+from blackhole.utils import get_res
 
 from ..external import tunnel
 
@@ -162,7 +163,7 @@ class MainFrame(Frame):
         '''
         # This does not work well
         # subprocess.Popen('rundll32.exe InetCpl.cpl,ClearMyTracksByProcess 8')
-        cmd = 'data/bin/CleanIETempFiles.exe -t -q'
+        cmd = get_res('data/bin/CleanIETempFiles.exe') + ' -t -q'
         logger.info('Starting proc: %s' % cmd)
 
         if sys.platform == 'win32':
@@ -737,15 +738,15 @@ def init(_config):
     root = Tk()
 
     IMAGES = {
-        'link': PhotoImage(file='data/img/link.gif'),
-        'unlink': PhotoImage(file='data/img/unlink.gif'),
-        'clearCookie': PhotoImage(file='data/img/clearCookie.gif'),
-        'clearCache': PhotoImage(file='data/img/clearCache.gif'),
-        'config': PhotoImage(file='data/img/config.gif'),
-        'log': PhotoImage(file='data/img/log.gif'),
-        'quit': PhotoImage(file='data/img/quit.gif'),
-        'tunnel': PhotoImage(file='data/img/tunnel.gif'),
-        'qrcode': PhotoImage(file='data/img/qrcode.gif')
+        'link': PhotoImage(file=get_res('data/img/link.gif')),
+        'unlink': PhotoImage(file=get_res('data/img/unlink.gif')),
+        'clearCookie': PhotoImage(file=get_res('data/img/clearCookie.gif')),
+        'clearCache': PhotoImage(file=get_res('data/img/clearCache.gif')),
+        'config': PhotoImage(file=get_res('data/img/config.gif')),
+        'log': PhotoImage(file=get_res('data/img/log.gif')),
+        'quit': PhotoImage(file=get_res('data/img/quit.gif')),
+        'tunnel': PhotoImage(file=get_res('data/img/tunnel.gif')),
+        'qrcode': PhotoImage(file=get_res('data/img/qrcode.gif'))
     }
 
     # setup styles and resources
@@ -761,7 +762,7 @@ def init(_config):
 
     try:
         # this throws on my mac
-        root.iconbitmap(default='data/img/app.ico')
+        root.iconbitmap(default=get_res('data/img/app.ico'))
     except:
         pass
 

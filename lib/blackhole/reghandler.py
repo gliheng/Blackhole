@@ -4,6 +4,7 @@ import subprocess
 import atexit
 
 from blackhole.confparser import getConfig
+from blackhole.utils import get_res
 
 if sys.platform == 'win32':
 
@@ -16,6 +17,8 @@ if sys.platform == 'win32':
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                 r'Software\Microsoft\Windows\CurrentVersion\Internet Settings',
                 0, winreg.KEY_ALL_ACCESS)
+
+        notifier_app = get_res('./data/bin/NotifyProxyChange.exe')
 
         try:
             oldProxyEnable = winreg.QueryValueEx(key, 'ProxyEnable')[0]
@@ -45,7 +48,7 @@ if sys.platform == 'win32':
 
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
+            subprocess.Popen(cls.notifier_app, startupinfo=startupinfo)
 
         @classmethod
         def deactivate(cls):
@@ -64,7 +67,7 @@ if sys.platform == 'win32':
 
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            subprocess.Popen('./data/bin/NotifyProxyChange.exe', startupinfo=startupinfo)
+            subprocess.Popen(cls.notifier_app, startupinfo=startupinfo)
 
 elif sys.platform == 'darwin':
     class RegHandler():

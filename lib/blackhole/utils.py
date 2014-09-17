@@ -4,6 +4,14 @@ import threading
 import subprocess
 import wsgiref.util
 
+config = {}
+def register_path(app_dir, config_dir):
+    config['app_dir'] = app_dir
+    config['config_dir'] = config_dir
+
+def get_res(path):
+    return os.path.normpath(os.path.join(config['app_dir'], path))
+
 class Event:
     def __init__(self):
         self.handlers = set()
