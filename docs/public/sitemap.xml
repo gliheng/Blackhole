@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>http://localhost:1313/</loc>
+    <lastmod>2014-09-16T13:43:41+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/intro</loc>
+    <lastmod>2014-09-16T13:43:41+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/tutorial</loc>
+    <lastmod>2014-07-19T10:20:25+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://localhost:1313/config</loc>
+    <lastmod>2014-09-18T15:19:38+00:00</lastmod>
+  </url>
+  
+</urlset>

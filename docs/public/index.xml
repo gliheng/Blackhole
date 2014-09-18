@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+      <title>Recent Content on Blackhole </title>
+      <generator uri="https://hugo.spf13.com">Hugo</generator>
+    <link>http://localhost:1313/index.xml</link>
+    <language>en-us</language>
+    
+    
+    <updated>Tue, 16 Sep 2014 13:43:41 UTC</updated>
+    
+    <item>
+      <title>简介</title>
+      <link>http://localhost:1313/intro</link>
+      <pubDate>Tue, 16 Sep 2014 13:43:41 UTC</pubDate>
+      
+      <guid>http://localhost:1313/intro</guid>
+      <description>
+
+&lt;h1 id=&#34;toc_0&#34;&gt;Blackhole是什么？&lt;/h1&gt;
+
+&lt;p&gt;Blackhole是为解决前端移动开发问题诞生的一个proxy debugger。&lt;/p&gt;
+
+&lt;p&gt;它能让你做到: &lt;img src=&#34;./images/intro.png&#34; alt=&#34;alt 移动调试就是扫描二维码这么简单&#34; title=&#34;扫描二维码调试&#34; /&gt;
+&lt;/p&gt;
+
+&lt;h1 id=&#34;toc_1&#34;&gt;原理&lt;/h1&gt;
+
+&lt;p&gt;原理请看这里的&lt;a href=&#34;./keynote/index.html&#34;&gt;ppt&lt;/a&gt;。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>使用方法</title>
+      <link>http://localhost:1313/tutorial</link>
+      <pubDate>Sat, 19 Jul 2014 10:20:25 UTC</pubDate>
+      
+      <guid>http://localhost:1313/tutorial</guid>
+      <description>
+
+&lt;h1 id=&#34;toc_0&#34;&gt;安装&lt;/h1&gt;
+
+&lt;p&gt;windows安装包，下一步下一步。。。，桌面会生成app图标。&lt;/p&gt;
+
+&lt;h1 id=&#34;toc_1&#34;&gt;启动&lt;/h1&gt;
+
+&lt;p&gt;有两种方法启动：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;双击图标启动&lt;/p&gt;
+
+&lt;p&gt;这时候使用全局配置文件。&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;拖动配置文件ini到桌面图标&lt;/p&gt;
+
+&lt;p&gt;这时候启动指定的配置文件。配置文件可以放到svn中共享。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;./images/drag&amp;amp;drop.png&#34; alt=&#34;拖动配置文件&#34; /&gt;
+&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&#34;toc_2&#34;&gt;界面简介&lt;/h1&gt;
+
+&lt;p&gt;主界面分为两个面板。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;./images/panel1.png&#34; alt=&#34;主面板&#34; /&gt;
+&lt;/p&gt;
+
+&lt;h2 id=&#34;toc_3&#34;&gt;PC调试&lt;/h2&gt;
+
+&lt;p&gt;PC调试的时候点击左上角的Capture按钮，开启本机调试模式
+激活后，会修改系统代理服务器，篡改浏览器请求。&lt;/p&gt;
+
+&lt;h2 id=&#34;toc_4&#34;&gt;移动调试&lt;/h2&gt;
+
+&lt;p&gt;移动调试点右上角的Tunnel按钮，并connect。激活后可以直接通过扫描二维码，请求就跑到你的pc上去了。&lt;/p&gt;
+
+&lt;h2 id=&#34;toc_5&#34;&gt;查看请求列表&lt;/h2&gt;
+
+&lt;p&gt;点击Log按钮可以出现请求响应列表，显示被捕获的请求。建议主要在chrome dev tools里面查看，这里只是偶尔定位问题用的。&lt;/p&gt;
+
+&lt;h2 id=&#34;toc_6&#34;&gt;修改配置&lt;/h2&gt;
+
+&lt;p&gt;为了在项目里面使用这个工具，可以点击config按钮修改配置。也可以直接编辑配置文件，然后重启软件。&lt;/p&gt;
+
+&lt;h1 id=&#34;toc_7&#34;&gt;小工具面板&lt;/h1&gt;
+
+&lt;p&gt;这个面板放了一些web开发的常用小工具。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;./images/panel2.png&#34; alt=&#34;工具面板&#34; /&gt;
+&lt;/p&gt;
+
+&lt;p&gt;ClearCache
+    清除IE浏览器上的缓存&lt;/p&gt;
+
+&lt;p&gt;ClearCookie
+    清除IE的cookie&lt;/p&gt;
+
+&lt;p&gt;Qrcode
+    一个生成qrcode的小工具&lt;/p&gt;
+
+&lt;p&gt;以后会有更多 ^o^&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>详细配置</title>
+      <link>http://localhost:1313/config</link>
+      <pubDate>Thu, 18 Sep 2014 15:19:38 UTC</pubDate>
+      
+      <guid>http://localhost:1313/config</guid>
+      <description>
+
+&lt;h1 id=&#34;toc_0&#34;&gt;配置文件详解&lt;/h1&gt;
+
+&lt;ol&gt;
+&lt;li&gt;配置文件是ini格式的，支持设置变量&lt;/li&gt;
+&lt;li&gt;rules定义了一组url匹配响应规则，每行规则之间通过tab分隔&lt;/li&gt;
+&lt;li&gt;每行rules分为两组或三组，第三组可选
+
+&lt;ul&gt;
+&lt;li&gt;匹配url正则&lt;/li&gt;
+&lt;li&gt;数据来源（包括单文件、文件夹、ip、伪造请求、合并规则）&lt;/li&gt;
+&lt;li&gt;中间件（可以修改请求和返回）&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;toc_1&#34;&gt;转发规则&lt;/h2&gt;
+
+&lt;p&gt;示例一组规则定义如下：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;转发到文件夹&lt;/p&gt;
+
+&lt;p&gt;http://%(host)s/css/    %(root)s/css/&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;转发到单个文件&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://res.html5.qq.com/topicshare/js/common1&#34;&gt;http://res.html5.qq.com/topicshare/js/common1&lt;/a&gt;   %(build)s\js\common1.js&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;默认转发，免得被其他规则匹配上&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://favtest.cs0309.html5.qq.com/login&#34;&gt;http://favtest.cs0309.html5.qq.com/login&lt;/a&gt;    DEFAULT&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;伪造一个404请求&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://comic.html5.qq.com/cache.manifest&#34;&gt;http://comic.html5.qq.com/cache.manifest&lt;/a&gt;    *404:sorry&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;转发到一个concat配置文件&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://3gimg.qq.com/reader/vd+/js/reader.min.js&#34;&gt;http://3gimg.qq.com/reader/vd+/js/reader.min.js&lt;/a&gt;    %(root)s/meteor.cfg&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;转发到单个文件，再对文件跑个py文件处理下&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://comic.html5.qq.com/&#34;&gt;http://comic.html5.qq.com/&lt;/a&gt;  E:\ComicWebServer\wsp\index.wsp comic_index.py&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;默认转发，但是使用两个中间件修改请求。加入清除缓存header, 然后修改返回加入weinre调试脚本&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://comic.html5.qq.com/&#34;&gt;http://comic.html5.qq.com/&lt;/a&gt;  DEFAULT bustCache|weinre&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;toc_2&#34;&gt;Tunnel规则&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Tunnel使用一个域名将请求转发到你的PC，方便移动调试。&lt;/li&gt;
+&lt;li&gt;每行tunnel定义也是两个或三个部分，第三部分可选。定义可以有很多行。
+
+&lt;ul&gt;
+&lt;li&gt;tunnel域名&lt;/li&gt;
+&lt;li&gt;转向域名&lt;/li&gt;
+&lt;li&gt;中间件&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;示例如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;tunnels = 
+    test.mttweb.html5.qq.com    www.example.com bustCache|weinre|fixcookie
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个配置通过test.mttweb.html5.qq.com域名把请求转发到你的pc上变成www.example.com的请求。&lt;/p&gt;
+
+&lt;p&gt;tunnel的server是可以配置的，鹅厂员工请使用&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;tunnel_server = mttweb.html5.qq.com:8080
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

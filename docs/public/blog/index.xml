@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+      <title>Blogs on Amadeus&#39; Blog </title>
+      <generator uri="https://hugo.spf13.com">Hugo</generator>
+    <link>http://localhost:1313/blog/index.xml</link>
+    <language>en-us</language>
+    
+    
+    <updated>Sat, 19 Jul 2014 10:20:25 UTC</updated>
+    
+    <item>
+      <title>first</title>
+      <link>http://localhost:1313/blog/first</link>
+      <pubDate>Sat, 19 Jul 2014 10:20:25 UTC</pubDate>
+      
+      <guid>http://localhost:1313/blog/first</guid>
+      <description>
+
+&lt;h1 id=&#34;toc_0&#34;&gt;hello&lt;/h1&gt;
+
+&lt;p&gt;This is my first post!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

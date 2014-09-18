@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title> Blackhole &middot; Blackhole </title>
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/poole.css">
+  <link rel="stylesheet" href="http://localhost:1313/css/syntax.css">
+  <link rel="stylesheet" href="http://localhost:1313/css/hyde.css">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  
+  <link href="http://localhost:1313/index.xml" rel="alternate" type="application/rss+xml" title="Blackhole" />
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div class="container sidebar-sticky">
+	<div class="logo"></div>
+    <div class="sidebar-about">
+      <h1>Blackhole</h1>
+      <p class="lead">
+      An elegant open source and mobile first theme for <a href="http://hugo.spf13.com">hugo</a> made by <a href="http://twitter.com/mdo">@mdo</a>. Originally made for Jekyll.
+      </p>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="/">Home</a> </li>
+      
+    </ul>
+
+    <p>&copy; 2014. All rights reserved. </p>
+  </div>
+</div>
+
+
+    <div class="content container">
+<div class="posts">
+
+      
+  <div class="post">
+    <h1 class="post-title">
+      <a href="http://localhost:1313/intro">
+        简介
+      </a>
+    </h1>
+
+    <span class="post-date">Tue, Sep 16, 2014</span>
+
+    
+
+<h1 id="toc_0">Blackhole是什么？</h1>
+
+<p>Blackhole是为解决前端移动开发问题诞生的一个proxy debugger。</p>
+
+<p>它能让你做到: <img src="./images/intro.png" alt="alt 移动调试就是扫描二维码这么简单" title="扫描二维码调试" />
+</p>
+
+<h1 id="toc_1">原理</h1>
+
+<p>原理请看这里的<a href="./keynote/index.html">ppt</a>。</p>
+
+  </div>
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="http://localhost:1313/tutorial">
+        使用方法
+      </a>
+    </h1>
+
+    <span class="post-date">Sat, Jul 19, 2014</span>
+
+    
+
+<h1 id="toc_0">安装</h1>
+
+<p>windows安装包，下一步下一步。。。，桌面会生成app图标。</p>
+
+<h1 id="toc_1">启动</h1>
+
+<p>有两种方法启动：</p>
+
+<ol>
+<li><p>双击图标启动</p>
+
+<p>这时候使用全局配置文件。</p></li>
+
+<li><p>拖动配置文件ini到桌面图标</p>
+
+<p>这时候启动指定的配置文件。配置文件可以放到svn中共享。</p>
+
+<p><img src="./images/drag&amp;drop.png" alt="拖动配置文件" />
+</p></li>
+</ol>
+
+<h1 id="toc_2">界面简介</h1>
+
+<p>主界面分为两个面板。</p>
+
+<p><img src="./images/panel1.png" alt="主面板" />
+</p>
+
+<h2 id="toc_3">PC调试</h2>
+
+<p>PC调试的时候点击左上角的Capture按钮，开启本机调试模式
+激活后，会修改系统代理服务器，篡改浏览器请求。</p>
+
+<h2 id="toc_4">移动调试</h2>
+
+<p>移动调试点右上角的Tunnel按钮，并connect。激活后可以直接通过扫描二维码，请求就跑到你的pc上去了。</p>
+
+<h2 id="toc_5">查看请求列表</h2>
+
+<p>点击Log按钮可以出现请求响应列表，显示被捕获的请求。建议主要在chrome dev tools里面查看，这里只是偶尔定位问题用的。</p>
+
+<h2 id="toc_6">修改配置</h2>
+
+<p>为了在项目里面使用这个工具，可以点击config按钮修改配置。也可以直接编辑配置文件，然后重启软件。</p>
+
+<h1 id="toc_7">小工具面板</h1>
+
+<p>这个面板放了一些web开发的常用小工具。</p>
+
+<p><img src="./images/panel2.png" alt="工具面板" />
+</p>
+
+<p>ClearCache
+    清除IE浏览器上的缓存</p>
+
+<p>ClearCookie
+    清除IE的cookie</p>
+
+<p>Qrcode
+    一个生成qrcode的小工具</p>
+
+<p>以后会有更多 ^o^</p>
+
+  </div>
+  
+  <div class="post">
+    <h1 class="post-title">
+      <a href="http://localhost:1313/config">
+        详细配置
+      </a>
+    </h1>
+
+    <span class="post-date">Thu, Sep 18, 2014</span>
+
+    
+
+<h1 id="toc_0">配置文件详解</h1>
+
+<ol>
+<li>配置文件是ini格式的，支持设置变量</li>
+<li>rules定义了一组url匹配响应规则，每行规则之间通过tab分隔</li>
+<li>每行rules分为两组或三组，第三组可选
+
+<ul>
+<li>匹配url正则</li>
+<li>数据来源（包括单文件、文件夹、ip、伪造请求、合并规则）</li>
+<li>中间件（可以修改请求和返回）</li>
+</ul></li>
+</ol>
+
+<h2 id="toc_1">转发规则</h2>
+
+<p>示例一组规则定义如下：</p>
+
+<ul>
+<li><p>转发到文件夹</p>
+
+<p>http://%(host)s/css/    %(root)s/css/</p></li>
+
+<li><p>转发到单个文件</p>
+
+<p><a href="http://res.html5.qq.com/topicshare/js/common1">http://res.html5.qq.com/topicshare/js/common1</a>   %(build)s\js\common1.js</p></li>
+
+<li><p>默认转发，免得被其他规则匹配上</p>
+
+<p><a href="http://favtest.cs0309.html5.qq.com/login">http://favtest.cs0309.html5.qq.com/login</a>    DEFAULT</p></li>
+
+<li><p>伪造一个404请求</p>
+
+<p><a href="http://comic.html5.qq.com/cache.manifest">http://comic.html5.qq.com/cache.manifest</a>    *404:sorry</p></li>
+
+<li><p>转发到一个concat配置文件</p>
+
+<p><a href="http://3gimg.qq.com/reader/vd+/js/reader.min.js">http://3gimg.qq.com/reader/vd+/js/reader.min.js</a>    %(root)s/meteor.cfg</p></li>
+
+<li><p>转发到单个文件，再对文件跑个py文件处理下</p>
+
+<p><a href="http://comic.html5.qq.com/">http://comic.html5.qq.com/</a>  E:\ComicWebServer\wsp\index.wsp comic_index.py</p></li>
+
+<li><p>默认转发，但是使用两个中间件修改请求。加入清除缓存header, 然后修改返回加入weinre调试脚本</p>
+
+<p><a href="http://comic.html5.qq.com/">http://comic.html5.qq.com/</a>  DEFAULT bustCache|weinre</p></li>
+</ul>
+
+<h2 id="toc_2">Tunnel规则</h2>
+
+<ul>
+<li>Tunnel使用一个域名将请求转发到你的PC，方便移动调试。</li>
+<li>每行tunnel定义也是两个或三个部分，第三部分可选。定义可以有很多行。
+
+<ul>
+<li>tunnel域名</li>
+<li>转向域名</li>
+<li>中间件</li>
+</ul></li>
+</ul>
+
+<p>示例如下：</p>
+
+<pre><code>tunnels = 
+    test.mttweb.html5.qq.com    www.example.com bustCache|weinre|fixcookie
+</code></pre>
+
+<p>这个配置通过test.mttweb.html5.qq.com域名把请求转发到你的pc上变成www.example.com的请求。</p>
+
+<p>tunnel的server是可以配置的，鹅厂员工请使用</p>
+
+<pre><code>tunnel_server = mttweb.html5.qq.com:8080
+</code></pre>
+
+  </div>
+  
+</div>
+
+
+  <script>document.write('<script src="http://'
+        + (location.host || 'localhost').split(':')[0]
+		+ ':1313/livereload.js?mindelay=10"></'
+        + 'script>')</script></body>
+</html>
