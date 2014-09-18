@@ -271,7 +271,8 @@ class QRCodePanel(ToolWindow):
 class QRCodeShow(Toplevel):
 
     def __init__(self, parent, s, x=0, y=0):
-        Toplevel.__init__(self, parent)
+        Toplevel.__init__(self, parent, width=1, height=1)
+        self.setPosition(-1000, -1000) # hide the initial window, so <Leave> is not triggered
         self.overrideredirect(True)
         self.lift()
         self.transient(parent)
@@ -282,14 +283,14 @@ class QRCodeShow(Toplevel):
 
         self.label = Label(self, image=tkimg, anchor=CENTER)
         self.image = tkimg # keep a reference, so that it's not GCed
-        self.label.pack(padx=6, pady=6, expand=YES, fill=BOTH)
+        self.label.pack(padx=5, pady=5, expand=YES, fill=BOTH)
 
-        self.setPosition(x, y)
+        self.setPosition(x, y, 310, 310)
 
-    def setPosition(self, x, y):
+    def setPosition(self, x, y, width=None, height=None):
         self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
+        width = width or self.winfo_width()
+        height = height or self.winfo_height()
         self.geometry('{}x{}+{}+{}'.format(width, height, x, y))
         
     @classmethod
