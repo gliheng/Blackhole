@@ -41,7 +41,8 @@ if __name__=='__main__':
     except FileExistsError:
         pass
     rotateLogger = logging.handlers.RotatingFileHandler(logfile, maxBytes=100*1024*1024, backupCount=3)
-    logging.basicConfig(level=logging.DEBUG, handlers=(rotateLogger,))
+    format = '%(asctime)-15s %(levelname)s:%(module)s:%(lineno)d > %(message)s'
+    logging.basicConfig(format=format, level=logging.DEBUG, handlers=(rotateLogger,))
 
     ### startup app ###
     from blackhole.confparser import get_config
