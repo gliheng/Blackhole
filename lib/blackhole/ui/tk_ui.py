@@ -746,7 +746,7 @@ def init(_config):
 
     try:
         # this throws on my mac
-        root.iconbitmap(default=get_res('data/img/app.ico'))
+        root.iconbitmap(default=get_res('data/img/blackhole.ico'))
     except:
         pass
 
