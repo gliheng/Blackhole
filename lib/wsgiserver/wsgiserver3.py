@@ -636,7 +636,7 @@ class HTTPRequest(object):
             self.simple_response("400 Bad Request",
                                  "Illegal #fragment in Request-URI.")
             return False
-        
+
         if scheme:
             self.scheme = scheme
         
@@ -800,7 +800,9 @@ class HTTPRequest(object):
             return None, None, uri
         else:
             # An authority.
-            return None, uri, None
+            # return None, uri, None
+            # bugfix: empty path kill the thread
+            return None, uri, b''
     
     def unquote_bytes(self, path):
         """takes quoted string and unquotes % encoded values""" 
