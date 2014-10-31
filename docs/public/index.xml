@@ -3,7 +3,7 @@
   <channel>
       <title>Recent Content on Blackhole </title>
       <generator uri="https://hugo.spf13.com">Hugo</generator>
-    <link>http://github.com/index.xml</link>
+    <link>http://gliheng.github.io/index.xml</link>
     <language>en-us</language>
     
     
@@ -11,10 +11,10 @@
     
     <item>
       <title>简介</title>
-      <link>http://github.com/intro</link>
+      <link>http://gliheng.github.io/intro</link>
       <pubDate>Tue, 16 Sep 2014 13:43:41 UTC</pubDate>
       
-      <guid>http://github.com/intro</guid>
+      <guid>http://gliheng.github.io/intro</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;Blackhole是什么？&lt;/h1&gt;
@@ -32,10 +32,10 @@
     
     <item>
       <title>使用方法</title>
-      <link>http://github.com/tutorial</link>
+      <link>http://gliheng.github.io/tutorial</link>
       <pubDate>Sat, 19 Jul 2014 10:20:25 UTC</pubDate>
       
-      <guid>http://github.com/tutorial</guid>
+      <guid>http://gliheng.github.io/tutorial</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;安装&lt;/h1&gt;
@@ -105,10 +105,10 @@
     
     <item>
       <title>详细配置</title>
-      <link>http://github.com/config</link>
+      <link>http://gliheng.github.io/config</link>
       <pubDate>Thu, 18 Sep 2014 15:19:38 UTC</pubDate>
       
-      <guid>http://github.com/config</guid>
+      <guid>http://gliheng.github.io/config</guid>
       <description>
 
 &lt;h1 id=&#34;toc_0&#34;&gt;配置文件详解&lt;/h1&gt;
