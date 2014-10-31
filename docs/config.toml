@@ -1,4 +1,4 @@
-baseurl = "http://github.com/gliheng/Blackhole"
+baseurl = "http://gliheng.github.io/Blackhole/"
 languageCode = "en-us"
 title = "Blackhole"
 description = "An elite web proxy debugger for desktop and mobile."
