@@ -2,6 +2,8 @@ What's this
 ===========
 Blackhole is a font-end proxy debugging tool, like fiddler. It intercept http requests, replace them with local alternatives or forward them to their backend server. A variaty of replacement/redirection scheme can be configured to allow for easier front-end development.
 
+Check out `Project site <http://gliheng.github.io/Blackhole/>`_ for more details.
+
 Requirements
 ============
 
