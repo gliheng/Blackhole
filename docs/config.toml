@@ -1,3 +1,7 @@
 baseurl = "http://github.com/gliheng/Blackhole"
 languageCode = "en-us"
 title = "Blackhole"
+description = "An elite web proxy debugger for desktop and mobile."
+
+[params]
+	description = "An elite web proxy debugger for desktop and mobile."
