@@ -135,6 +135,9 @@ class MainFrame(Frame):
             self.capture_btn.config(text='Capture', image=IMAGES['link'])
             self.status_bar.config(text='Server has stopped')
 
+            if sys.platform == 'darwin':
+                NetworkSelector.toggle()
+
         else:
             def activate(service=None):
                 # set registry on windows
@@ -227,6 +230,10 @@ class NetworkSelector(ToolWindow):
 
         self.serviceVar = StringVar()
         for service in services:
+            # python3.4 return bytes here instead
+            if isinstance(service, bytes):
+                service = service.decode('utf-8')
+
             Radiobutton(self, text=service, variable=self.serviceVar, value=service, command=self.onSelect).pack(side=TOP, anchor=W)
 
     def onSelect(self):
