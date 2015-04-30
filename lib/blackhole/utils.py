@@ -114,7 +114,9 @@ class CmdProxy():
 
 def get_absolute_url(environ):
 
-    url = environ['REQUEST_URI'].decode('utf-8', errors='ignore')
+    url = environ['REQUEST_URI']
+    if isinstance(url, bytes):
+        url = url.decode('utf-8', errors='ignore')
     # relative url found, get absolute url from host header
     if not url.startswith(('http://', 'https://')):
         url = 'http://' + environ['HTTP_HOST'] + url
