@@ -3,22 +3,31 @@ import sys
 
 from cx_Freeze import setup, Executable
 
+name = 'Blackhole'
+icon = 'data/img/blackhole.ico'
+upgrade_code = '{86a85bac-52ff-4018-0e94-3afcc9e1ad0d}'
+
 base = None
+exe_name = name
 if sys.platform == 'win32':
     base = 'Win32GUI'
-
-icon = 'data/img/blackhole.ico'
+    exe_name += '.exe',
 
 build_exe_options = {
+    'includes': ['tkinter'],
     'include_files': ['config.ini', 'data', 'example'],
     'bin_path_excludes': [r'C:\Program Files (x86)\git\bin'],
-    'packages': ['blackhole', 'wsgiserver'],
+    'packages': ['blackhole', 'wsgiserver', 'tkinter'],
     'path': ['lib'] + sys.path,
     'icon': icon
 }
 
 bdist_msi_options = {
-    'upgrade_code': '{96a85bac-52af-4018-0e94-3afcc9e1ad0c}'
+    'upgrade_code': upgrade_code,
+#    'data': {
+#        'Registry': [
+#        ]
+#    }
 }
 
 bdist_mac_options = {
@@ -26,7 +35,7 @@ bdist_mac_options = {
 }
 
 setup(
-    name = 'Blackhole',
+    name = name,
     version = '0.3',
     description = 'Elite web proxy debugger',
     options = {
@@ -37,6 +46,7 @@ setup(
     executables = [Executable(
         'Blackhole.pyw',
         base=base,
+        targetName=exe_name,
         shortcutName='Blackhole',
         shortcutDir='DesktopFolder'
     )]
